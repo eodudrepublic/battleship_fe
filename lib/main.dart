@@ -1,13 +1,17 @@
-import 'package:battleship_fe/view/game/game_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'common/key.dart';
+import 'common/utils/logger.dart';
+import 'package:battleship_fe/view/game/game_view.dart';
+import 'package:battleship_fe/view/login/login_view.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   KakaoSdk.init(nativeAppKey: myNativeAppKey);
+
+  Log.wtf("KakaoSdk initialized : ${await KakaoSdk.origin} -> 이게 왜 키 해쉬예요 ㅅㅂ");
 
   runApp(MyApp());
 }
@@ -20,7 +24,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Battleship',
       // debugShowCheckedModeBanner: false,
-      home: GameView(),
+      home: LoginView(),
     );
   }
 }
