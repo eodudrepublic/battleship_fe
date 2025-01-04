@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:battleship_fe/common/app_colors.dart';
 import '../../controller/login/user_controller.dart';
 import '../../service/kakao_login_api.dart';
 
@@ -84,15 +86,26 @@ class LoginView extends StatelessWidget {
             controller.kakaoLogin();
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.yellow[700], // 카카오톡 색상
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            backgroundColor: AppColors.kakaotalkYellow,
+            padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 5.sp),
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(12), // 테두리 곡률 설정 : 12 픽셀(Pixel)
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
+              Image.asset(
+                'assets/png/kakao_icon.png',
+                width: 30.sp,
+                height: 30.sp,
+              ),
+              SizedBox(width: 10.sp),
               Text(
-                'Login with Kakao',
-                style: TextStyle(color: Colors.black, fontSize: 16),
+                '카카오 로그인',
+                style:
+                    TextStyle(color: AppColors.kakaotalkLabel, fontSize: 25.sp),
               ),
             ],
           ),

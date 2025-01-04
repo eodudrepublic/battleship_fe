@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'common/key.dart';
@@ -21,10 +22,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Battleship',
-      // debugShowCheckedModeBanner: false,
-      home: LoginView(),
+    return ScreenUtilInit(
+      designSize: const Size(410, 920),
+      child: GetMaterialApp(
+        // debugShowCheckedModeBanner: false,
+        title: 'Battleship',
+        // debugShowCheckedModeBanner: false,
+        home: LoginView(),
+      ),
     );
   }
 }
