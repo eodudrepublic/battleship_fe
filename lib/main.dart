@@ -1,3 +1,4 @@
+import 'package:battleship_fe/view/game/deploy_making.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -24,12 +25,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(410, 920),
-      child: GetMaterialApp(
-        // debugShowCheckedModeBanner: false,
-        title: 'Battleship',
-        // debugShowCheckedModeBanner: false,
-        home: LoginView(),
-      ),
+      builder: (context, child) {
+        return GetMaterialApp(
+          title: 'Battleship',
+          // debugShowCheckedModeBanner: false,
+          home: DeployViewMaking(),
+        );
+      },
     );
   }
 }
