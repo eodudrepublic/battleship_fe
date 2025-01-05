@@ -1,4 +1,3 @@
-import 'package:battleship_fe/view/game/deploy_making.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          home: DeployViewMaking(),
+          home: GameView(),
         );
       },
     );

@@ -1,98 +1,170 @@
 import 'package:get/get.dart';
-import '../../model/ship.dart';
+import '../../model/unit.dart';
 
 class GameController extends GetxController {
-  // 15x15 격자를 List<List<String>>으로 정의 (반응형)
+  // 10x10 격자를 List<List<String>>으로 정의 (반응형)
   var grid = List.generate(
-    15,
-    (_) => List<String>.filled(15, 'empty'),
+    10,
+    (_) => List<String>.filled(10, 'empty'),
   ).obs;
 
-  // 배치할 함선 목록
-  var ships = <Ship>[
-    // 1x2 크기의 함선 5개
-    Ship(id: 's1', name: 'Destroyer 1', size: 2),
-    Ship(id: 's2', name: 'Destroyer 2', size: 2),
-    Ship(id: 's3', name: 'Destroyer 3', size: 2),
-    Ship(id: 's4', name: 'Destroyer 4', size: 2),
-    Ship(id: 's5', name: 'Destroyer 5', size: 2),
-
-    // 1x3 크기의 함선 3개
-    Ship(id: 's6', name: 'Submarine 1', size: 3),
-    Ship(id: 's7', name: 'Submarine 2', size: 3),
-    Ship(id: 's8', name: 'Submarine 3', size: 3),
-
-    // 1x5 크기의 함선 2개
-    Ship(id: 's9', name: 'Carrier 1', size: 5),
-    Ship(id: 's10', name: 'Carrier 2', size: 5),
+  // 배치할 유닛 유형 목록 (반응형 리스트)
+  final RxList<Unit> unitTypes = <Unit>[
+    Unit(id: 'u1', name: '하마', width: 3, height: 2),
+    Unit(id: 'u2', name: '악어', width: 4, height: 1),
+    Unit(id: 'u3', name: '통나무', width: 2, height: 1),
   ].obs;
 
-  // 현재 선택된 함선
-  var selectedShip = Rxn<Ship>();
+  // 실제 배치된 유닛 목록
+  var placedUnits = <Unit>[].obs;
 
-  // 함선을 격자에 배치하는 메서드
-  void placeShip(Ship ship, int row, int col) {
-    bool isHorizontal = ship.isHorizontal;
+  // 각 유닛 유형의 남은 개수
+  var unitCounts = {
+    'u1': 1,
+    'u2': 2,
+    'u3': 3,
+  }.obs;
 
-    // 격자의 범위 확인
-    if (isHorizontal) {
-      if (col + ship.size > 15) {
-        // 범위 초과
-        Get.snackbar('Error', '함선이 격자 범위를 벗어납니다.');
-        return;
-      }
-      for (int i = 0; i < ship.size; i++) {
-        if (grid.value[row][col + i] != 'empty') {
-          // 이미 다른 함선이 있는 경우
-          Get.snackbar('Error', '해당 위치에 이미 함선이 있습니다.');
-          return;
-        }
-      }
-      // 격자에 함선 배치
-      for (int i = 0; i < ship.size; i++) {
-        grid.value[row][col + i] = ship.id;
-        ship.coordinates.add('${String.fromCharCode(65 + row)}${col + i + 1}');
-      }
-    } else {
-      if (row + ship.size > 15) {
-        // 범위 초과
-        Get.snackbar('Error', '함선이 격자 범위를 벗어납니다.');
-        return;
-      }
-      for (int i = 0; i < ship.size; i++) {
-        if (grid.value[row + i][col] != 'empty') {
-          // 이미 다른 함선이 있는 경우
-          Get.snackbar('Error', '해당 위치에 이미 함선이 있습니다.');
-          return;
-        }
-      }
-      // 격자에 함선 배치
-      for (int i = 0; i < ship.size; i++) {
-        grid.value[row + i][col] = ship.id;
-        ship.coordinates.add('${String.fromCharCode(65 + row + i)}${col + 1}');
-      }
-    }
+  // 각 유닛 유형의 배치 카운터 (고유 ID 생성을 위해)
+  var unitCounters = {
+    'u1': 0,
+    'u2': 0,
+    'u3': 0,
+  }.obs;
 
-    ship.isPlaced = true;
-    ships.refresh();
-    grid.refresh(); // grid 변경 사항을 반영
-    selectedShip.value = null; // 선택 해제
-  }
+  // 현재 선택된 유닛 유형
+  var selectedUnitType = Rxn<Unit>();
 
-  // 함선 선택 메서드
-  void selectShip(Ship ship) {
-    if (ship.isPlaced) {
-      Get.snackbar('Info', '이미 배치된 함선입니다.');
+  // 현재 선택된 배치된 유닛
+  var selectedPlacedUnit = Rxn<Unit>();
+
+  // 배치 완료 여부
+  var isDeploymentComplete = false.obs;
+
+  // 유닛 유형 선택 메서드
+  void selectUnitType(Unit unitType) {
+    if (unitCounts[unitType.id]! <= 0) {
+      Get.snackbar('Info', '더 이상 남은 유닛이 없습니다.');
       return;
     }
-    selectedShip.value = ship;
+    selectedUnitType.value = unitType;
+    selectedPlacedUnit.value = null; // 배치된 유닛 선택 해제
   }
 
-  // 함선 회전 메서드
-  void rotateSelectedShip() {
-    if (selectedShip.value != null) {
-      selectedShip.value!.isHorizontal = !selectedShip.value!.isHorizontal;
-      ships.refresh();
+  // 배치된 유닛 선택 메서드
+  void selectPlacedUnit(Unit unit) {
+    selectedPlacedUnit.value = unit;
+    selectedUnitType.value = null; // 유닛 유형 선택 해제
+  }
+
+  // 유닛 회전 메서드
+  void rotateSelectedUnit() {
+    if (selectedUnitType.value != null) {
+      selectedUnitType.value!.isHorizontal =
+          !selectedUnitType.value!.isHorizontal;
+      unitTypes.refresh(); // 반응형 리스트이므로 refresh() 가능
     }
+  }
+
+  // 유닛 배치 메서드
+  void placeUnit(Unit unitType, int row, int col) {
+    if (unitCounts[unitType.id]! <= 0) {
+      Get.snackbar('Error', '더 이상 남은 유닛이 없습니다.');
+      return;
+    }
+
+    bool isHorizontal = unitType.isHorizontal;
+    int unitWidth = isHorizontal ? unitType.width : unitType.height;
+    int unitHeight = isHorizontal ? unitType.height : unitType.width;
+
+    // 격자 범위 확인 (10x10)
+    if (row + unitHeight > 10 || col + unitWidth > 10) {
+      Get.snackbar('Error', '유닛이 격자 범위를 벗어납니다.');
+      return;
+    }
+
+    // 격자 충돌 확인
+    for (int r = row; r < row + unitHeight; r++) {
+      for (int c = col; c < col + unitWidth; c++) {
+        if (grid.value[r][c] != 'empty') {
+          Get.snackbar('Error', '해당 위치에 이미 유닛이 있습니다.');
+          return;
+        }
+      }
+    }
+
+    // 격자에 유닛 배치
+    List<String> placedCoordinates = [];
+    for (int r = row; r < row + unitHeight; r++) {
+      for (int c = col; c < col + unitWidth; c++) {
+        grid.value[r][c] = unitType.id;
+        placedCoordinates.add('${String.fromCharCode(65 + r)}${c + 1}');
+      }
+    }
+
+    // 고유 ID 생성 (예: 'u3_1', 'u3_2', ...)
+    unitCounters[unitType.id] = unitCounters[unitType.id]! + 1;
+    String uniqueId = '${unitType.id}_${unitCounters[unitType.id]}';
+
+    // 새로운 유닛 인스턴스 생성
+    Unit placedUnit = Unit(
+      id: uniqueId,
+      name: unitType.name,
+      width: unitType.width,
+      height: unitType.height,
+      isHorizontal: isHorizontal,
+      isPlaced: true,
+      startRow: row,
+      startCol: col,
+      coordinates: placedCoordinates,
+    );
+
+    // 배치된 유닛 리스트에 추가
+    placedUnits.add(placedUnit);
+
+    // 남은 개수 업데이트
+    unitCounts[unitType.id] = unitCounts[unitType.id]! - 1;
+
+    // 상태 업데이트
+    grid.refresh();
+    placedUnits.refresh();
+
+    // 선택 해제
+    selectedUnitType.value = null;
+    selectedPlacedUnit.value = null;
+  }
+
+  // 배치 완료 메서드
+  void completeDeployment() {
+    // 모든 유닛이 배치되었는지 확인
+    bool allPlaced = unitCounts.values.every((count) => count <= 0);
+    if (!allPlaced) {
+      Get.snackbar('Error', '모든 유닛을 배치하지 않았습니다.');
+      return;
+    }
+    isDeploymentComplete.value = true;
+    // 추가적인 로직 (예: 게임 시작 등)을 여기에 추가
+  }
+
+  // 유닛 이동 메서드
+  void moveUnit(Unit unit, int newRow, int newCol) {
+    // 기존 배치된 좌표 초기화
+    for (String coord in unit.coordinates) {
+      int r = coord.codeUnitAt(0) - 65;
+      int c = int.parse(coord.substring(1)) - 1;
+      grid.value[r][c] = 'empty';
+    }
+
+    // 새로운 배치 시도
+    unit.coordinates.clear();
+    unit.isPlaced = false;
+    unit.startRow = null;
+    unit.startCol = null;
+    placedUnits.refresh();
+    placeUnit(
+      unitTypes.firstWhere((u) => u.id == unit.id.split('_')[0]),
+      newRow,
+      newCol,
+    );
   }
 }
