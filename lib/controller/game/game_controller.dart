@@ -32,14 +32,14 @@ class GameController extends GetxController {
     'u3': 0,
   }.obs;
 
+  // 배치 완료 여부
+  var isDeploymentComplete = false.obs;
+
   // 현재 선택된 유닛 유형
   var selectedUnitType = Rxn<Unit>();
 
   // 현재 선택된 배치된 유닛
   var selectedPlacedUnit = Rxn<Unit>();
-
-  // 배치 완료 여부
-  var isDeploymentComplete = false.obs;
 
   // 유닛 유형 선택 메서드
   void selectUnitType(Unit unitType) {
@@ -67,10 +67,10 @@ class GameController extends GetxController {
   }
 
   // 유닛 배치 메서드
-  void placeUnit(Unit unitType, int row, int col) {
+  bool placeUnit(Unit unitType, int row, int col) {
     if (unitCounts[unitType.id]! <= 0) {
       Get.snackbar('Error', '더 이상 남은 유닛이 없습니다.');
-      return;
+      return false;
     }
 
     bool isHorizontal = unitType.isHorizontal;
@@ -80,7 +80,7 @@ class GameController extends GetxController {
     // 격자 범위 확인 (10x10)
     if (row + unitHeight > 10 || col + unitWidth > 10) {
       Get.snackbar('Error', '유닛이 격자 범위를 벗어납니다.');
-      return;
+      return false;
     }
 
     // 격자 충돌 확인
@@ -88,7 +88,7 @@ class GameController extends GetxController {
       for (int c = col; c < col + unitWidth; c++) {
         if (grid.value[r][c] != 'empty') {
           Get.snackbar('Error', '해당 위치에 이미 유닛이 있습니다.');
-          return;
+          return false;
         }
       }
     }
@@ -128,10 +128,15 @@ class GameController extends GetxController {
     // 상태 업데이트
     grid.refresh();
     placedUnits.refresh();
+    unitTypes.refresh(); // 이미지 변경을 위해 추가
 
     // 선택 해제
     selectedUnitType.value = null;
     selectedPlacedUnit.value = null;
+
+    // 남은 개수가 0인 경우 이미지 변경을 위해 unitTypes를 refresh
+
+    return true;
   }
 
   // 배치 완료 메서드
@@ -166,5 +171,56 @@ class GameController extends GetxController {
       newRow,
       newCol,
     );
+  }
+
+  // 배치 초기화 메서드
+  void resetPlacement() {
+    // 격자 초기화
+    grid.value = List.generate(
+      10,
+      (_) => List<String>.filled(10, 'empty'),
+    );
+
+    // 배치된 유닛 초기화
+    placedUnits.clear();
+
+    // 유닛 카운터 초기화
+    unitCounters.updateAll((key, value) => 0);
+
+    // 유닛 남은 개수 초기화
+    unitCounts.updateAll((key, value) {
+      switch (key) {
+        case 'u1':
+          return 1;
+        case 'u2':
+          return 2;
+        case 'u3':
+          return 3;
+        default:
+          return value;
+      }
+    });
+
+    // 배치 완료 여부 초기화
+    isDeploymentComplete.value = false;
+
+    // 선택된 유닛 초기화
+    selectedPlacedUnit.value = null;
+    selectedUnitType.value = null;
+
+    // 상태 업데이트
+    grid.refresh();
+    placedUnits.refresh();
+    unitTypes.refresh();
+  }
+
+  // 선택된 배치된 유닛 설정
+  void setSelectedPlacedUnit(Unit? unit) {
+    selectedPlacedUnit.value = unit;
+  }
+
+  // 선택된 유닛 유형 설정
+  void setSelectedUnitType(Unit? unit) {
+    selectedUnitType.value = unit;
   }
 }

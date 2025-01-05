@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'common/key.dart';
 import 'common/utils/logger.dart';
-import 'package:battleship_fe/view/game/game_view.dart';
+import 'package:battleship_fe/view/game/deploy_view.dart';
 import 'package:battleship_fe/view/login/login_view.dart';
 
 Future<void> main() async {
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          home: GameView(),
+          home: DeployView(),
         );
       },
     );
