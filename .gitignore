@@ -46,3 +46,4 @@ app.*.map.json
 
 # 개인용 앱키 파일
 /lib/common/key.dart
+/lib/common/server_url.dart

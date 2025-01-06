@@ -1,6 +1,6 @@
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import '../common/utils/logger.dart';
 
-// TODO : 서버 연결할때 저장할 User 정보에 맞춰서 추후 수정
 class AppUser {
   final String id;
   final String? nickname;
@@ -14,6 +14,10 @@ class AppUser {
 
   // Kakao SDK의 User 객체를 AppUser로 변환하는 팩토리 생성자
   factory AppUser.fromKakaoUser(User kakaoUser) {
+    Log.info("Kakao Socail Login :\n"
+        "id : ${kakaoUser.id}\n"
+        "nickname : ${kakaoUser.kakaoAccount?.profile?.nickname}\n"
+        "profileImageUrl : ${kakaoUser.kakaoAccount?.profile?.profileImageUrl}");
     return AppUser(
       id: kakaoUser.id.toString(),
       nickname: kakaoUser.kakaoAccount?.profile?.nickname,

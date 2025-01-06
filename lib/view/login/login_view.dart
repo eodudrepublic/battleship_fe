@@ -97,7 +97,7 @@ class LoginView extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/png/kakao_icon.png',
+                'assets/icons/kakao_icon.png',
                 width: 30.sp,
                 height: 30.sp,
               ),
