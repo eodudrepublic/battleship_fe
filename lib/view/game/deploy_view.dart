@@ -53,7 +53,7 @@ class DeployView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               /// 게임판
-              GameBoardView(
+              DeployBoardView(
                 cellSize: _cellSize,
                 borderWidth: _borderWidth,
                 controller: controller, // 통합된 컨트롤러 전달

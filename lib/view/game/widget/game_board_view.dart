@@ -6,13 +6,13 @@ import '../../../model/unit.dart';
 
 typedef OnUnitTapCallback = void Function(Unit? unit);
 
-class GameBoardView extends StatelessWidget {
+class DeployBoardView extends StatelessWidget {
   final double cellSize;
   final double borderWidth;
   final GameController controller;
   final OnUnitTapCallback onUnitTap;
 
-  const GameBoardView({
+  const DeployBoardView({
     super.key,
     required this.cellSize,
     required this.borderWidth,
