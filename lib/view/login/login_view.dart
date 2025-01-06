@@ -18,17 +18,22 @@ class LoginView extends StatelessWidget {
         Get.put(UserController(kakaoLoginApi: kakaoLoginApi));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Flutter with Kakao login"),
-      ),
+      backgroundColor: AppColors.backGroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _profile(userController),
-            _nickName(userController),
+            Image.asset(
+              'assets/icons/branding.png',
+              width: 0.6.sw,
+            ),
+            Image.asset(
+              'assets/icons/main_icon.png',
+              width: 0.8.sw,
+              height: 0.8.sw,
+            ),
             _loginButton(userController),
-            _logoutButton(userController),
+            // _logoutButton(userController),
           ],
         ),
       ),
@@ -111,7 +116,11 @@ class LoginView extends StatelessWidget {
           ),
         );
       } else {
-        return const SizedBox.shrink(); // 이미 로그인한 경우 버튼 숨김
+        // TODO : 로그인 완료 시 처리
+        return Text(
+          '카카오 로그인 완료!',
+          style: TextStyle(color: AppColors.kakaotalkLabel, fontSize: 25.sp),
+        );
       }
     });
   }
