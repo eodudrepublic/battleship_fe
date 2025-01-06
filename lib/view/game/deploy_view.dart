@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import '../../common/app_colors.dart';
 import '../../controller/game/game_controller.dart';
 import '../../model/unit.dart';
-import 'widget/game_board_view.dart';
+import 'widget/deploy_board.dart';
 
 class DeployView extends StatelessWidget {
   final double _cellSize = (1.sw - 10.sp) / 11 - 1.sp;
@@ -24,34 +24,92 @@ class DeployView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backGroundColor,
-      appBar: AppBar(
-        title: Text('배치하기'),
-        actions: [
-          // TODO : 아직 구현되지 않은 기능
-          // TODO 1 : 유닛 회전 -> 회전한 이미지 저장 -> 유닛 회전하면 회전한 이미지가 들어오도록
-          // TODO 2 : 배치 완료 -> 배치 완료하면 게임 페이지로 넘어가도록
-          // IconButton(
-          //   icon: Icon(Icons.rotate_right),
-          //   onPressed: () {
-          //     controller.rotateSelectedUnit();
-          //   },
-          //   tooltip: '유닛 회전',
-          // ),
-          // IconButton(
-          //   icon: Icon(Icons.check),
-          //   onPressed: () {
-          //     controller.completeDeployment();
-          //   },
-          //   tooltip: '배치 완료',
-          // ),
-        ],
-      ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 5.sp),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // TODO : 아직 구현되지 않은 기능
+              // TODO 1 : 유닛 회전 -> 회전한 이미지 저장 -> 유닛 회전하면 회전한 이미지가 들어오도록
+              // TODO 2 : 배치 완료 -> 배치 완료하면 게임 페이지로 넘어가도록
+              // IconButton(
+              //   icon: Icon(Icons.rotate_right),
+              //   onPressed: () {
+              //     controller.rotateSelectedUnit();
+              //   },
+              //   tooltip: '유닛 회전',
+              // ),
+              // IconButton(
+              //   icon: Icon(Icons.check),
+              //   onPressed: () {
+              //     controller.completeDeployment();
+              //   },
+              //   tooltip: '배치 완료',
+              // ),
+
+              /// 배치 완료 / 배치 시간 안내
+              Container(
+                height: 0.2.sh,
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("배치하기",
+                        style: TextStyle(
+                            fontSize: 35.sp, fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 10.sp),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // TODO : 남은 배치시간 받아서 표시하도록 (서버 연결 필요)
+                          Container(
+                            height: 0.06.sh,
+                            width: 0.30.sw,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.timeWidgetColor,
+                              borderRadius: BorderRadius.circular(10.sp),
+                            ),
+                            child: Text(
+                              "00:57",
+                              style: TextStyle(
+                                  fontSize: 18.sp, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          SizedBox(width: 10.sp),
+                          GestureDetector(
+                            onTap: () {
+                              // TODO : 위젯 배치 완료해야 활성화
+                              // TODO : 게임 진행 화면으로 넘어가기
+                            },
+                            child: Container(
+                              height: 0.06.sh,
+                              width: 0.30.sw,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.attackButtonColor,
+                                borderRadius: BorderRadius.circular(10.sp),
+                              ),
+                              child: Text(
+                                "배치 완료",
+                                style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+
               /// 게임판
               DeployBoardView(
                 cellSize: _cellSize,

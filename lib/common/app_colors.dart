@@ -7,6 +7,7 @@ class AppColors {
 
   static const Color backGroundColor = Color(0xFFEDFAFF);
 
+  static const Color boardColor = Color(0xFFE4ECFF);
   static const Color timeWidgetColor = Color(0xFFC7ECFF);
   static const Color attackButtonColor = Color(0xFF0B2F9F);
 }

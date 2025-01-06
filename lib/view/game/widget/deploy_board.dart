@@ -1,3 +1,4 @@
+import 'package:battleship_fe/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -50,6 +51,7 @@ class DeployBoardView extends StatelessWidget {
                   (index) => Container(
                     alignment: Alignment.center,
                     height: cellSize,
+                    color: AppColors.boardColor,
                     child: index == 0
                         ? Text('') // 빈 셀
                         : Text(
@@ -71,6 +73,7 @@ class DeployBoardView extends StatelessWidget {
                         return Container(
                           alignment: Alignment.center,
                           height: cellSize,
+                          color: AppColors.boardColor,
                           child: Text(
                             String.fromCharCode(65 + rowIndex), // A~J
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -117,7 +120,7 @@ class DeployBoardView extends StatelessWidget {
                               color: controller.grid.value[rowIndex]
                                           [colIndex - 1] ==
                                       'empty'
-                                  ? Colors.lightBlue[50]
+                                  ? AppColors.boardColor
                                   : Colors.grey,
                             ),
                             // 이미지는 여기서 렌더링하지 않음

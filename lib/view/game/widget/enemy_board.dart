@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../common/app_colors.dart';
+import '../../../common/utils/logger.dart';
 import '../../../controller/game/game_controller.dart';
 
 class EnemyBoardView extends StatelessWidget {
@@ -14,9 +16,6 @@ class EnemyBoardView extends StatelessWidget {
     required this.controller,
   });
 
-  // ==================================================
-  // [Refactored] 마커 이미지 경로 함수 + 주석 및 print 구문 추가
-  // ==================================================
   String _getMarkerImagePath(String marker) {
     switch (marker) {
       case 'aim':
@@ -32,7 +31,7 @@ class EnemyBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("Log.debug: Building EnemyBoardView");
+    Log.info("Building EnemyBoardView");
     return Obx(() {
       return Stack(
         children: [
@@ -50,6 +49,7 @@ class EnemyBoardView extends StatelessWidget {
                   (index) => Container(
                     alignment: Alignment.center,
                     height: cellSize,
+                    color: AppColors.boardColor,
                     child: index == 0
                         ? const Text('')
                         : Text(
@@ -71,6 +71,7 @@ class EnemyBoardView extends StatelessWidget {
                         return Container(
                           alignment: Alignment.center,
                           height: cellSize,
+                          color: AppColors.boardColor,
                           child: Text(
                             String.fromCharCode(65 + rowIndex),
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -86,14 +87,14 @@ class EnemyBoardView extends StatelessWidget {
                         return GestureDetector(
                           onTap: () {
                             // 내 공격 턴일 때만 가능하다고 가정
-                            print(
-                                "Log.debug: Tapped enemy board cell [row=$rowIndex, col=${colIndex - 1}]");
+                            Log.info(
+                                "Tapped enemy board cell [row=$rowIndex, col=${colIndex - 1}]");
                             controller.selectAttackCell(rowIndex, colIndex - 1);
                           },
                           child: Container(
                             alignment: Alignment.center,
                             height: cellSize,
-                            color: Colors.lightBlue[50],
+                            color: AppColors.boardColor,
                             child: markerPath.isNotEmpty
                                 ? Image.asset(markerPath, fit: BoxFit.cover)
                                 : null,

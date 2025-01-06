@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../common/utils/logger.dart';
 import '../../model/unit.dart';
 
 class GameController extends GetxController {
@@ -28,10 +29,6 @@ class GameController extends GetxController {
 
   var selectedUnitType = Rxn<Unit>();
   var selectedPlacedUnit = Rxn<Unit>();
-
-  // ==================================================
-  // [Refactored] 섹션별 주석 + 설명 + print 추가
-  // ==================================================
 
   // ======================================
   // [배치(Deploy)] 관련 필드
@@ -73,30 +70,29 @@ class GameController extends GetxController {
   /// 유닛 유형을 선택하는 메서드
   /// 배치 가능한 유닛 수가 0개 이상이어야 선택 가능
   void selectUnitType(Unit unitType) {
-    print("Log.debug: Try to select unit type: ${unitType.id}");
+    Log.info("Try to select unit type: ${unitType.id}");
     if (unitCounts[unitType.id]! <= 0) {
-      print("Log.warn: Cannot select ${unitType.id}, no more units left.");
+      Log.warning("Cannot select ${unitType.id}, no more units left.");
       return;
     }
     selectedUnitType.value = unitType;
     selectedPlacedUnit.value = null;
-    print("Log.info: Selected unit type: ${unitType.id}");
+    Log.info("Selected unit type: ${unitType.id}");
   }
 
   /// 이미 배치된 유닛을 선택하는 메서드
   void selectPlacedUnit(Unit unit) {
-    print("Log.debug: Selecting placed unit with uniqueId: ${unit.id}");
+    Log.info("Selecting placed unit with uniqueId: ${unit.id}");
     selectedPlacedUnit.value = unit;
     selectedUnitType.value = null;
-    print("Log.info: Selected placed unit: ${unit.id}");
+    Log.info("Selected placed unit: ${unit.id}");
   }
 
   /// 유닛을 보드에 배치하는 메서드
   bool placeUnit(Unit unitType, int row, int col) {
-    print(
-        "Log.debug: Attempting to place unit ${unitType.id} at row=$row, col=$col");
+    Log.info("Attempting to place unit ${unitType.id} at row=$row, col=$col");
     if (unitCounts[unitType.id]! <= 0) {
-      print("Log.warn: No more ${unitType.id} units left to place.");
+      Log.warning("No more ${unitType.id} units left to place.");
       return false;
     }
 
@@ -105,7 +101,7 @@ class GameController extends GetxController {
     int unitHeight = isHorizontal ? unitType.height : unitType.width;
 
     if (row + unitHeight > 10 || col + unitWidth > 10) {
-      print("Log.warn: Cannot place ${unitType.id} out of board range.");
+      Log.warning("Cannot place ${unitType.id} out of board range.");
       return false;
     }
 
@@ -113,7 +109,7 @@ class GameController extends GetxController {
     for (int r = row; r < row + unitHeight; r++) {
       for (int c = col; c < col + unitWidth; c++) {
         if (grid[r][c] != 'empty') {
-          print("Log.warn: Collision detected at row=$r, col=$c");
+          Log.warning("Collision detected at row=$r, col=$c");
           return false;
         }
       }
@@ -154,13 +150,13 @@ class GameController extends GetxController {
     selectedUnitType.value = null;
     selectedPlacedUnit.value = null;
 
-    print("Log.info: Placed unit ${uniqueId} at row=$row, col=$col");
+    Log.info("Placed unit $uniqueId at row=$row, col=$col");
     return true;
   }
 
   /// 이미 배치된 유닛을 이동(재배치)하는 메서드
   void moveUnit(Unit unit, int newRow, int newCol) {
-    print("Log.debug: Moving unit ${unit.id} to row=$newRow, col=$newCol");
+    Log.info("Moving unit ${unit.id} to row=$newRow, col=$newCol");
     // 기존 좌표 초기화
     for (String coord in unit.coordinates) {
       int r = coord.codeUnitAt(0) - 65;
@@ -186,11 +182,11 @@ class GameController extends GetxController {
   /// 선택된(배치 전) 유닛의 방향을 회전하는 메서드
   void rotateSelectedUnit() {
     if (selectedUnitType.value != null) {
-      print("Log.debug: Rotating unit ${selectedUnitType.value!.id}");
+      Log.info("Rotating unit ${selectedUnitType.value!.id}");
       selectedUnitType.value!.isHorizontal =
           !selectedUnitType.value!.isHorizontal;
-      print(
-          "Log.info: Rotated unit ${selectedUnitType.value!.id} -> isHorizontal: ${selectedUnitType.value!.isHorizontal}");
+      Log.info(
+          "Rotated unit ${selectedUnitType.value!.id} -> isHorizontal: ${selectedUnitType.value!.isHorizontal}");
     }
   }
 
@@ -198,16 +194,16 @@ class GameController extends GetxController {
   void completeDeployment() {
     bool allPlaced = unitCounts.values.every((count) => count <= 0);
     if (!allPlaced) {
-      print("Log.warn: Not all units have been placed yet.");
+      Log.warning("Log.warn: Not all units have been placed yet.");
       return;
     }
     isDeploymentComplete.value = true;
-    print("Log.info: Deployment complete!");
+    Log.info("Deployment complete!");
   }
 
   /// 모든 배치와 보드를 리셋하는 메서드
   void resetPlacement() {
-    print("Log.info: Resetting placement...");
+    Log.info("Resetting placement...");
     grid.value = List.generate(
       10,
       (_) => List<String>.filled(10, 'empty'),
@@ -246,7 +242,7 @@ class GameController extends GetxController {
     myBoardMarkers.refresh();
     enemyBoardMarkers.refresh();
 
-    print("Log.info: All placements and markers have been reset.");
+    Log.info("All placements and markers have been reset.");
   }
 
   // ======================================
@@ -256,22 +252,21 @@ class GameController extends GetxController {
   /// 상대가 내 보드를 공격했을 때 호출하는 메서드
   /// row, col 좌표에 유닛이 있다면 'enemy_hit', 없으면 'enemy_miss'
   void enemyAttacksCell(int row, int col) {
-    print("Log.debug: Enemy attacks cell [row=$row, col=$col]");
+    Log.info("Enemy attacks cell [row=$row, col=$col]");
     final cellValue = grid[row][col];
     if (cellValue != 'empty') {
       myBoardMarkers[row][col] = 'enemy_hit';
-      print("Log.info: Enemy hit my unit at row=$row, col=$col");
+      Log.info("Enemy hit my unit at row=$row, col=$col");
     } else {
       myBoardMarkers[row][col] = 'enemy_miss';
-      print("Log.info: Enemy missed at row=$row, col=$col");
+      Log.info("Enemy missed at row=$row, col=$col");
     }
     myBoardMarkers.refresh();
   }
 
   /// 내가 적 보드를 공격하기 위해 좌표를 선택
   void selectAttackCell(int row, int col) {
-    print(
-        "Log.debug: Selecting attack cell [row=$row, col=$col] on enemy board.");
+    Log.info("Selecting attack cell [row=$row, col=$col] on enemy board.");
     // 기존 'aim' 마커 제거
     if (selectedAttackCell.value != null) {
       final oldRow = selectedAttackCell.value![0];
@@ -286,13 +281,13 @@ class GameController extends GetxController {
     selectedAttackCell.value = [row, col];
     enemyBoardMarkers.refresh();
 
-    print("Log.info: Marked 'aim' at enemy board [row=$row, col=$col]");
+    Log.info("Marked 'aim' at enemy board [row=$row, col=$col]");
   }
 
   /// 실제 공격(버튼 눌렀을 때)을 수행하는 메서드
   void attackSelectedCell() {
     if (selectedAttackCell.value == null) {
-      print("Log.warn: No cell selected to attack.");
+      Log.warning("No cell selected to attack.");
       return;
     }
 
@@ -300,19 +295,20 @@ class GameController extends GetxController {
     final col = selectedAttackCell.value![1];
 
     // 예시) 임의로 맞췄다(true)/빗나갔다(false)라고 가정
+    // TODO : Hit/Miss 결과 서버에서 받아오도록 나중에 수정
     bool isHit = _checkEnemyUnitHit(row, col);
 
     if (isHit) {
       enemyBoardMarkers[row][col] = 'my_hit';
-      print("Log.info: I hit the enemy at row=$row, col=$col!");
+      Log.info("I hit the enemy at row=$row, col=$col!");
     } else {
       enemyBoardMarkers[row][col] = 'my_miss';
-      print("Log.info: I missed the enemy at row=$row, col=$col.");
+      Log.info("I missed the enemy at row=$row, col=$col.");
     }
 
     // 공격 좌표 로그 출력
-    print("Log.info: 공격한 좌표는 ${String.fromCharCode(65 + row)}${col + 1}");
-
+    Log.info("공격한 좌표는 ${String.fromCharCode(65 + row)}${col + 1}");
+    // TODO --------------------
     // 공격 후 선택 해제
     selectedAttackCell.value = null;
     enemyBoardMarkers.refresh();
@@ -321,7 +317,7 @@ class GameController extends GetxController {
   /// 임의의 로직으로 히트/미스를 판단하는 예시 함수
   bool _checkEnemyUnitHit(int row, int col) {
     // 예) row가 짝수면 hit, 홀수면 miss 로 가정
-    print("Log.debug: Checking if enemy unit is hit at row=$row, col=$col");
+    Log.info("Checking if enemy unit is hit at row=$row, col=$col");
     return (row % 2 == 0);
   }
 

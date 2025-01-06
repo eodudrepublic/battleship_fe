@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../common/app_colors.dart';
+import '../../../common/utils/logger.dart';
 import '../../../controller/game/game_controller.dart';
 
 class MyBoardView extends StatelessWidget {
@@ -13,11 +15,6 @@ class MyBoardView extends StatelessWidget {
     required this.borderWidth,
     required this.controller,
   });
-
-  // ==================================================
-  // [Refactored] 유닛 이미지 경로, 마커 이미지 경로
-  // + 주석 및 print 구문 추가 (예시)
-  // ==================================================
 
   /// 배치된 유닛(hippo, crocodile, log) 이미지 경로를 반환
   String _getUnitImagePath(String unitTypeId) {
@@ -47,7 +44,7 @@ class MyBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("Log.debug: Building MyBoardView");
+    Log.info("Building MyBoardView");
     return Obx(() {
       return Stack(
         children: [
@@ -65,6 +62,7 @@ class MyBoardView extends StatelessWidget {
                   (index) => Container(
                     alignment: Alignment.center,
                     height: cellSize,
+                    color: AppColors.boardColor,
                     child: index == 0
                         ? const Text('')
                         : Text(
@@ -86,6 +84,7 @@ class MyBoardView extends StatelessWidget {
                         return Container(
                           alignment: Alignment.center,
                           height: cellSize,
+                          color: AppColors.boardColor,
                           child: Text(
                             String.fromCharCode(65 + rowIndex),
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -100,7 +99,7 @@ class MyBoardView extends StatelessWidget {
                         return Container(
                           alignment: Alignment.center,
                           height: cellSize,
-                          color: Colors.lightBlue[50],
+                          color: AppColors.boardColor,
                           child: markerPath.isNotEmpty
                               ? Image.asset(markerPath, fit: BoxFit.cover)
                               : null,
