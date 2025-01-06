@@ -22,16 +22,34 @@ class DeployBoardView extends StatelessWidget {
   });
 
   String _getUnitImagePath(String unitTypeId) {
+    // 1) GameController에서 unitTypes 목록을 찾고, orientation을 확인
+    final GameController controller = Get.find<GameController>();
+    final Unit? foundUnit =
+        controller.unitTypes.firstWhereOrNull((u) => u.id == unitTypeId);
+
+    // 2) 가로/세로 방향을 얻기 (기본값: true)
+    bool isHorizontal = foundUnit?.isHorizontal ?? true;
+
+    // 3) baseName 결정
+    String baseName;
     switch (unitTypeId) {
       case 'u1':
-        return 'assets/units/hippo_ride.png';
+        baseName = 'assets/units/hippo_ride';
       case 'u2':
-        return 'assets/units/crocodile_ride.png';
+        baseName = 'assets/units/crocodile_ride';
       case 'u3':
-        return 'assets/units/log_ride.png';
+        baseName = 'assets/units/log_ride';
       default:
-        return 'assets/units/none.png';
+        baseName = 'assets/units/none';
     }
+
+    // 4) 만약 세로 배치(isHorizontal = false)라면, '_rotate' 붙이기
+    if (!isHorizontal) {
+      baseName = '${baseName}_rotate';
+    }
+
+    // 5) 최종 경로 반환
+    return '$baseName.png';
   }
 
   @override
@@ -159,7 +177,7 @@ class DeployBoardView extends StatelessWidget {
                         : null,
                   ),
                   child: Image.asset(
-                    _getUnitImagePath(u.id.split('_')[0]), // 유닛 유형에 맞는 이미지 경로
+                    u.imagePath,
                     fit: BoxFit.contain,
                   ),
                 ),

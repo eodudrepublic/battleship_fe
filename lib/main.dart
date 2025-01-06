@@ -1,3 +1,4 @@
+import 'package:battleship_fe/controller/game/game_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,8 @@ Future<void> main() async {
 
   Log.wtf("KakaoSdk initialized : ${await KakaoSdk.origin} -> 이게 왜 키 해쉬예요 ㅅㅂ");
 
+  Get.put(GameController());
+
   runApp(MyApp());
 }
 
@@ -29,7 +32,12 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          home: GameView(),
+          initialRoute: '/deploy',
+          getPages: [
+            GetPage(name: '/login', page: () => LoginView()),
+            GetPage(name: '/deploy', page: () => DeployView()),
+            GetPage(name: '/game', page: () => GameView()),
+          ],
         );
       },
     );

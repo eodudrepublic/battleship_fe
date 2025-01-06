@@ -13,7 +13,7 @@ class GameView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Log.info("Building GameView");
-    final GameController controller = Get.put(GameController());
+    final GameController controller = Get.find<GameController>();
 
     return Scaffold(
       backgroundColor: AppColors.backGroundColor,

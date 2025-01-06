@@ -16,6 +16,7 @@ class MyBoardView extends StatelessWidget {
     required this.controller,
   });
 
+  // TODO : 현재 배치된 이미지 위치가 살짝 이상함 -> 수정 필요
   /// 배치된 유닛(hippo, crocodile, log) 이미지 경로를 반환
   String _getUnitImagePath(String unitTypeId) {
     switch (unitTypeId) {

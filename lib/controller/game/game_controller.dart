@@ -140,6 +140,9 @@ class GameController extends GetxController {
       coordinates: placedCoordinates,
     );
 
+    unitType.isPlaced = true; // 이제 'exist' 이미지가 될 조건
+    unitType.toggleOrientation(); // <- 주의! 회전시키는 게 아니라면 remove
+
     placedUnits.add(placedUnit);
     unitCounts[unitType.id] = unitCounts[unitType.id]! - 1;
 
@@ -183,11 +186,42 @@ class GameController extends GetxController {
   void rotateSelectedUnit() {
     if (selectedUnitType.value != null) {
       Log.info("Rotating unit ${selectedUnitType.value!.id}");
-      selectedUnitType.value!.isHorizontal =
-          !selectedUnitType.value!.isHorizontal;
+
+      // 기존 코드 대신 toggleOrientation() 호출
+      selectedUnitType.value!.toggleOrientation();
+
+      // 나머지 로그
       Log.info(
-          "Rotated unit ${selectedUnitType.value!.id} -> isHorizontal: ${selectedUnitType.value!.isHorizontal}");
+        "Rotated unit ${selectedUnitType.value!.id} -> "
+        "isHorizontal: ${selectedUnitType.value!.isHorizontal}",
+      );
     }
+  }
+
+  /// 배치된 유닛을 제거하는 메서드
+  void removePlacedUnit(Unit unit) {
+    Log.info("Removing placed unit ${unit.id} from the board...");
+
+    // 1) 기존 좌표 초기화
+    for (String coord in unit.coordinates) {
+      int r = coord.codeUnitAt(0) - 65;
+      int c = int.parse(coord.substring(1)) - 1;
+      grid[r][c] = 'empty';
+    }
+
+    // 2) placedUnits 목록에서 제거
+    placedUnits.remove(unit);
+
+    // 3) unitCounts 복원(배치 취소됐으므로 1개 증가)
+    final originalTypeId = unit.id.split('_')[0];
+    unitCounts[originalTypeId] = unitCounts[originalTypeId]! + 1;
+
+    // 4) 상태 갱신
+    grid.refresh();
+    placedUnits.refresh();
+
+    Log.info(
+        "Unit ${unit.id} removed. unitCounts[$originalTypeId] = ${unitCounts[originalTypeId]}");
   }
 
   /// 배치가 모두 완료되었는지 확인 후 완료 상태로 설정
