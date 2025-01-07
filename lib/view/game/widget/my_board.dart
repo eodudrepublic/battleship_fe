@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../common/app_colors.dart';
 import '../../../common/utils/logger.dart';
 import '../../../controller/game/game_controller.dart';
+import '../../../model/unit.dart';
 
 class MyBoardView extends StatelessWidget {
   final double cellSize;
@@ -15,21 +16,6 @@ class MyBoardView extends StatelessWidget {
     required this.borderWidth,
     required this.controller,
   });
-
-  // TODO : 현재 배치된 이미지 위치가 살짝 이상함 -> 수정 필요
-  /// 배치된 유닛(hippo, crocodile, log) 이미지 경로를 반환
-  String _getUnitImagePath(String unitTypeId) {
-    switch (unitTypeId) {
-      case 'u1':
-        return 'assets/units/hippo_ride.png';
-      case 'u2':
-        return 'assets/units/crocodile_ride.png';
-      case 'u3':
-        return 'assets/units/log_ride.png';
-      default:
-        return 'assets/units/none.png';
-    }
-  }
 
   /// 내 보드 위 마커(enemy_hit, enemy_miss 등) 이미지 경로를 반환
   String _getMarkerImagePath(String marker) {
@@ -120,17 +106,25 @@ class MyBoardView extends StatelessWidget {
             if (u.startRow == null || u.startCol == null) {
               return Container();
             }
-            // 유닛이 시작되는 위치에 맞춰 Positioned로 렌더링
+
+            // DeployBoardView와 동일한 방식으로 left, top, width, height를 계산
+            // (행/열 레이블이 한 칸씩 있으므로, +1 칸 * cellSize)
+            final leftPos = (u.startCol! + 1) * cellSize;
+            final topPos = (u.startRow! + 1) * cellSize;
+
+            final w = (u.isHorizontal ? u.width : u.height) * cellSize +
+                ((u.isHorizontal ? u.width : u.height) - 1) * borderWidth;
+            final h = (u.isHorizontal ? u.height : u.width) * cellSize +
+                ((u.isHorizontal ? u.height : u.width) - 1) * borderWidth;
+
             return Positioned(
-              left: (u.startCol! + 1) * cellSize +
-                  (u.startCol!) * borderWidth, // 테두리 고려
-              top: (u.startRow! + 1) * cellSize + (u.startRow!) * borderWidth,
-              width: (u.isHorizontal ? u.width : u.height) * cellSize +
-                  ((u.isHorizontal ? u.width : u.height) - 1) * borderWidth,
-              height: (u.isHorizontal ? u.height : u.width) * cellSize +
-                  ((u.isHorizontal ? u.height : u.width) - 1) * borderWidth,
+              left: leftPos,
+              top: topPos,
+              width: w,
+              height: h,
+              // 회전 여부, 배치 여부에 따라 이미 set된 imagePath 사용
               child: Image.asset(
-                _getUnitImagePath(u.id.split('_')[0]),
+                u.imagePath,
                 fit: BoxFit.contain,
               ),
             );
