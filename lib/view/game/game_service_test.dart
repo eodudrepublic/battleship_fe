@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:battleship_fe/service/game_service.dart';
-
 import '../../common/utils/logger.dart';
 
 class GameServiceTest extends StatefulWidget {
@@ -69,13 +68,11 @@ class _GameServiceTestState extends State<GameServiceTest> {
     }
     try {
       final result = await _gameService.joinRoom(_roomCode!, _defenderId);
-      _log("""
-방 참가 성공
+      _log("""방 참가 성공
 is_matched: ${result["is_matched"]}
 room_code: ${result["room_code"]}
 opponent: ${result["opponent"]}
-is_first: ${result["is_first"]}
-      """);
+is_first: ${result["is_first"]}""");
     } catch (e) {
       _log("방 참가 실패: $e");
     }
@@ -171,8 +168,6 @@ damageStatus: ${damageStatusResponse.damageStatus}
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('GameService 테스트 화면'),

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../../common/app_colors.dart';
 import '../../../common/utils/logger.dart';
 import '../../../controller/game/game_controller.dart';
-import '../../../model/unit.dart';
 
 class MyBoardView extends StatelessWidget {
   final double cellSize;

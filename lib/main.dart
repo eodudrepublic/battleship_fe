@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          initialRoute: '/test',
+          initialRoute: '/login',
           getPages: [
             GetPage(name: '/login', page: () => LoginView()),
             GetPage(name: '/deploy', page: () => DeployView()),
