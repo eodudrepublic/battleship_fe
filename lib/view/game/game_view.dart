@@ -30,7 +30,7 @@ class _GameViewState extends State<GameView> {
   @override
   void initState() {
     super.initState();
-    _startDefenderCheckTimer(); // 수비자 폴링
+    _startDefenderCheckTimer(); // 처음 진입 시, 혹시 내가 수비자라면 폴링 시작
   }
 
   @override
@@ -39,8 +39,11 @@ class _GameViewState extends State<GameView> {
     super.dispose();
   }
 
-  /// 5초 간격으로 수비자 Damage 상태 확인 (최대 20초)
+  /// 5초 간격으로 수비자 Damage 상태 확인
   void _startDefenderCheckTimer() {
+    // 이미 존재하던 타이머가 있으면 해제
+    _defenderCheckTimer?.cancel();
+
     int elapsed = 0;
     _defenderCheckTimer =
         Timer.periodic(const Duration(seconds: 5), (timer) async {
@@ -49,12 +52,13 @@ class _GameViewState extends State<GameView> {
         return;
       }
       elapsed += 5;
+      // 필요에 따라 제한 시간을 조정 (여기서는 100초로 가정)
       if (elapsed > 100) {
         timer.cancel();
         return;
       }
 
-      // 내가 수비자(즉, isMyTurn=false)일 때만 체크
+      // 내가 수비자(즉, isMyTurn == false)일 때만 체크
       if (GameState().isMyTurn == false) {
         final result = await _gameService.checkDamageStatusAsDefender(
           GameState().roomCode!,
@@ -73,7 +77,7 @@ class _GameViewState extends State<GameView> {
             GameState().endGame();
             Get.snackbar("패배", "상대의 마지막 공격이 적중했습니다!");
           } else {
-            // 턴 종료
+            // 공격 끝 -> 턴 종료 + 공격/수비 교대
             await _gameService.endTurn(GameState().roomCode!);
             GameState().toggleTurn();
           }
@@ -85,7 +89,7 @@ class _GameViewState extends State<GameView> {
 
   /// 공격자가 '공격하기' 버튼을 누를 때
   void _onAttackButtonPressed() async {
-    // 내가 공격자( isMyTurn=true )인지 확인
+    // 내가 공격자( isMyTurn == true )인지 확인
     if (GameState().isMyTurn == false || GameState().isGameOver) return;
 
     // 예: controller.selectedAttackCell.value -> [row, col]
@@ -122,9 +126,14 @@ class _GameViewState extends State<GameView> {
       GameState().endGame();
       Get.snackbar("승리", "게임에서 승리하였습니다!");
     } else {
-      // 공격 끝났으니 -> 턴 종료
+      // 공격 끝 -> 턴 종료 -> 공격/수비 교대
       await _gameService.endTurn(GameState().roomCode!);
       GameState().toggleTurn();
+
+      // 이제 내가 수비자가 되었다면, 다시 _startDefenderCheckTimer 실행
+      if (GameState().isMyTurn == false && !GameState().isGameOver) {
+        _startDefenderCheckTimer();
+      }
     }
   }
 
@@ -166,8 +175,8 @@ class _GameViewState extends State<GameView> {
 
     final rowIndex = rowChar.codeUnitAt(0) - 'A'.codeUnitAt(0);
     final colIndex = int.tryParse(colStr) ?? -1;
-    if (rowIndex < 0 || rowIndex > 9) return null; // 범위체크
-    if (colIndex < 1 || colIndex > 10) return null;
+    if (rowIndex < 0 || rowIndex > 9) return null; // 범위체크 (A~J)
+    if (colIndex < 1 || colIndex > 10) return null; // 1~10
 
     return [rowIndex, colIndex - 1]; // 0-based
   }
