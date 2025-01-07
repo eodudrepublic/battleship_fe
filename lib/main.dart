@@ -1,4 +1,5 @@
 import 'package:battleship_fe/controller/game/game_controller.dart';
+import 'package:battleship_fe/view/game/game_service_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -32,11 +33,12 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          initialRoute: '/deploy',
+          initialRoute: '/test',
           getPages: [
             GetPage(name: '/login', page: () => LoginView()),
             GetPage(name: '/deploy', page: () => DeployView()),
             GetPage(name: '/game', page: () => GameView()),
+            GetPage(name: '/test', page: () => GameServiceTest()),
           ],
         );
       },
