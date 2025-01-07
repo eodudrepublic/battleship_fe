@@ -328,8 +328,6 @@ class GameController extends GetxController {
     final row = selectedAttackCell.value![0];
     final col = selectedAttackCell.value![1];
 
-    // 예시) 임의로 맞췄다(true)/빗나갔다(false)라고 가정
-    // TODO : Hit/Miss 결과 서버에서 받아오도록 나중에 수정
     bool isHit = _checkEnemyUnitHit(row, col);
 
     if (isHit) {
@@ -342,7 +340,7 @@ class GameController extends GetxController {
 
     // 공격 좌표 로그 출력
     Log.info("공격한 좌표는 ${String.fromCharCode(65 + row)}${col + 1}");
-    // TODO --------------------
+
     // 공격 후 선택 해제
     selectedAttackCell.value = null;
     enemyBoardMarkers.refresh();

@@ -77,6 +77,7 @@ class MyBoardView extends StatelessWidget {
                           ),
                         );
                       } else {
+                        // TODO : enemy_hit/miss 마커가 제일 위로 오도록 수정
                         // 실제 데이터 셀 (enemy_hit/miss 마커 표시)
                         final marker =
                             controller.myBoardMarkers[rowIndex][colIndex - 1];

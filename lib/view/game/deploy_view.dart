@@ -4,8 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../common/app_colors.dart';
+import '../../common/utils/logger.dart';
 import '../../controller/game/game_controller.dart';
+import '../../model/game_state.dart';
 import '../../model/unit.dart';
+import '../../model/user_model.dart';
+import '../../service/game_service.dart';
 import 'widget/deploy_board.dart';
 
 class DeployView extends StatelessWidget {
@@ -64,14 +68,32 @@ class DeployView extends StatelessWidget {
                           ),
                           SizedBox(width: 10.sp),
                           GestureDetector(
-                            onTap: () {
+                            onTap: () async {
                               // 1) 아직 배치가 안 끝났다면 배치 완료 시도
                               if (!controller.isDeploymentComplete.value) {
                                 controller.completeDeployment();
                               }
 
-                              // 2) 배치가 모두 완료되었다면 게임 화면으로 이동
+                              // 2) 배치가 모두 완료되었다면 좌표 출력 후 게임 화면으로 이동
                               if (controller.isDeploymentComplete.value) {
+                                // 모든 배치된 유닛의 좌표를 수집
+                                List<String> allCoordinates = [];
+                                for (var unit in controller.placedUnits) {
+                                  allCoordinates.addAll(unit.coordinates);
+                                }
+
+                                // 좌표들을 콘솔에 출력
+                                Log.info(
+                                    "배치된 유닛의 좌표들: ${allCoordinates.join(', ')}");
+                                // 서버에 보드 전송
+                                final myId = AppUser().id ?? 0;
+                                final gameService = GameService();
+                                final rCode = GameState().roomCode ?? '';
+
+                                await gameService.sendBoard(
+                                    rCode, myId, allCoordinates);
+
+                                // 게임 화면으로 이동
                                 Get.offNamed('/game');
                               }
                             },

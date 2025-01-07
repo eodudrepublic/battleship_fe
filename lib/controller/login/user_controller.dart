@@ -13,19 +13,27 @@ class UserController extends GetxController {
 
   UserController({required this.kakaoLoginApi});
 
+  @override
+  void onInit() {
+    super.onInit();
+    // 싱글톤 인스턴스로 초기화
+    user.value = AppUser();
+  }
+
   // 카카오 로그인 메서드
   Future<void> kakaoLogin() async {
     try {
       var kakaoUser = await kakaoLoginApi.signWithKakao();
       if (kakaoUser != null) {
-        user.value = AppUser.fromKakaoUser(kakaoUser);
+        AppUser appUser = AppUser.fromKakaoUser(kakaoUser);
+        user.value = appUser;
         Get.snackbar('성공', '카카오 로그인이 성공했습니다.');
 
         // Prepare JSON payload
         Map<String, dynamic> payload = {
-          "user_id": user.value!.id,
-          "nickname": user.value!.nickname ?? "",
-          "profile_image_url": user.value!.profileImageUrl ?? "",
+          "user_id": appUser.id,
+          "nickname": appUser.nickname ?? "",
+          "profile_image_url": appUser.profileImageUrl ?? "",
         };
 
         // Send POST request to the server
@@ -60,7 +68,8 @@ class UserController extends GetxController {
   Future<void> kakaoLogout() async {
     try {
       await kakaoLoginApi.logout();
-      user.value = null;
+      AppUser().clearUser();
+      user.value = AppUser();
       Get.snackbar('성공', '로그아웃에 성공했습니다.');
     } catch (error) {
       Get.snackbar('실패', '로그아웃에 실패했습니다.');

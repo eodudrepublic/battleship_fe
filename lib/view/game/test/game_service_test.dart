@@ -3,10 +3,6 @@ import 'package:battleship_fe/service/game_service.dart';
 import '../../../common/utils/logger.dart';
 
 class GameServiceTest extends StatefulWidget {
-  // TODO : attack = 1 -> user1_id가 공격, user2_id가 수비
-  // TODO : performAttack -> getAttackStatus -> sendDamageStatus -> getDamageStatus -> endTurn 수행
-  // TODO : endTurn 이후 공격, 수비가 바뀌는것 표시 -> 화면에 attack:, defense: 표시
-
   const GameServiceTest({super.key});
 
   @override
@@ -14,7 +10,7 @@ class GameServiceTest extends StatefulWidget {
 }
 
 class _GameServiceTestState extends State<GameServiceTest> {
-  /// 공격자(user1)와 수비자(user2) 예시
+  /// 예시용: 공격자(user1), 수비자(user2)
   int user1Id = 25;
   int user2Id = 50;
 
@@ -27,140 +23,141 @@ class _GameServiceTestState extends State<GameServiceTest> {
   /// 현재 생성된 방 코드
   String? _roomCode;
 
-  /// 로그/결과를 화면에 표시하기 위한 텍스트
+  /// 테스트 로그를 화면에 표시하기 위한 문자열
   String _resultText = '결과가 여기에 표시됩니다.';
 
-  /// 편의상 현재 공격자 / 수비자 ID를 반환하는 getter
+  /// 헬퍼: 현재 공격자 / 수비자 ID
   int get _attackerId => (attack == 1) ? user1Id : user2Id;
   int get _defenderId => (attack == 1) ? user2Id : user1Id;
 
-  /// UI 상단에 표시할 "현재 공격자", "현재 수비자" 문자열
+  /// 헬퍼: 표시용 문자열
   String get _attackerString =>
-      attack == 1 ? 'User1($user1Id)' : 'User2($user2Id)';
+      (attack == 1) ? 'User1($user1Id)' : 'User2($user2Id)';
   String get _defenderString =>
-      attack == 1 ? 'User2($user2Id)' : 'User1($user1Id)';
+      (attack == 1) ? 'User2($user2Id)' : 'User1($user1Id)';
 
-  /// 화면에 로그를 표시하기 위한 헬퍼 메서드
+  /// 로그를 표시하고 콘솔에도 찍음
   void _log(String message) {
     setState(() {
       _resultText = message;
     });
-    Log.info(message); // 추가된 부분: 콘솔에 로그 출력
+    Log.info(message);
   }
 
-  /// 1) 방 생성: 공격자(Host)가 방을 만들고, room_code를 받는다.
+  /// -----------------------------
+  /// (3) 방 생성 : createInvite
+  /// -----------------------------
   Future<void> _createInvite() async {
     try {
       final result = await _gameService.createInvite(_attackerId);
-      _roomCode = result['room_code'];
-      _log(
-          "방 생성 완료\nRoomCode: $_roomCode\nInviteLink: ${result['invite_link']}");
+      if (result.containsKey('room_code')) {
+        _roomCode = result['room_code'];
+        _log("방 생성 완료, roomCode: $_roomCode");
+      } else if (result.containsKey('message') &&
+          result['message'] == 'already exists') {
+        _log("이미 참여 중인 방이 있습니다: ${result['message']}");
+      } else {
+        _log("알 수 없는 응답: $result");
+      }
     } catch (e) {
       _log("방 생성 실패: $e");
     }
   }
 
-  /// 2) 수비자(Guest)가 위에서 생성된 방에 참가한다.
+  /// -----------------------------
+  /// (5) 초대 승인 : joinRoom
+  /// -----------------------------
   Future<void> _joinRoom() async {
     if (_roomCode == null) {
-      _log("먼저 방을 생성(createInvite)하세요.");
+      _log("방 코드가 없습니다. 먼저 방을 생성하세요.");
       return;
     }
     try {
       final result = await _gameService.joinRoom(_roomCode!, _defenderId);
-      _log("""방 참가 성공
-is_matched: ${result["is_matched"]}
-room_code: ${result["room_code"]}
-opponent: ${result["opponent"]}
-is_first: ${result["is_first"]}""");
+      _log("방 참가 성공: $result");
     } catch (e) {
       _log("방 참가 실패: $e");
     }
   }
 
-  /// 3) 공격/수비 단계 전체 플로우:
-  ///    performAttack -> getAttackStatus -> sendDamageStatus -> getDamageStatus -> endTurn
-  ///    순서대로 호출하여 테스트
-  Future<void> _attackSequence() async {
+  /// 예시: 보드 배치 전송 (6)
+  Future<void> _sendBoard() async {
     if (_roomCode == null) {
-      _log("먼저 방을 생성(createInvite) 및 참가(joinRoom)하세요.");
+      _log("방 코드가 없습니다. 먼저 방을 생성하세요.");
       return;
     }
 
-    // === (1) 공격자 -> performAttack
     try {
-      final performAttackResult = await _gameService.performAttack(
+      // 예: 내가 "A1", "B2"에 뭔가를 배치했다고 가정
+      final myBoard = ["A1", "B2"];
+      await _gameService.sendBoard(_roomCode!, _attackerId, myBoard);
+      _log("보드 배치 전송 완료!: attackerId=$_attackerId");
+    } catch (e) {
+      _log("보드 배치 전송 실패: $e");
+    }
+  }
+
+  /// 예시: 방 상태 확인 (7)
+  Future<void> _checkGameStatus() async {
+    if (_roomCode == null) {
+      _log("방 코드가 없습니다. 먼저 방을 생성하세요.");
+      return;
+    }
+
+    try {
+      final status = await _gameService.getGameStatus(_roomCode!);
+      _log("방 상태 확인: $status");
+    } catch (e) {
+      _log("방 상태 조회 실패: $e");
+    }
+  }
+
+  /// -----------------------------
+  /// (9) 공격 -> (8) 수비 -> (10) 턴종료
+  /// -----------------------------
+  /// 간단히 공격자가 공격하고, 수비자가 damage 조회, 다시 턴 종료하는 흐름 예시
+  Future<void> _attackAndCheckDamage() async {
+    if (_roomCode == null) {
+      _log("방 코드가 없습니다. 먼저 방을 생성하고, 참가하세요.");
+      return;
+    }
+
+    // 1) 공격자가 공격
+    try {
+      // 예: "A1"에 공격
+      final attackResult = await _gameService.performAttack(
         _roomCode!,
         _attackerId,
         _defenderId,
-        'A', // 예시: 공격 위치 x
-        1, // 예시: 공격 위치 y
+        "A1",
       );
-
-      _log(
-          "공격 수행 성공: 공격 상태 = ${performAttackResult ? 'attack' : 'not attack'}");
+      // 공격 결과 (damage_status, game_status 등) 확인
+      _log("공격 결과: $attackResult");
     } catch (e) {
       _log("공격 수행 실패: $e");
       return;
     }
 
-    // === (2) 수비자 -> getAttackStatus (공격 받았는지 확인)
+    // 2) 수비자가 방어/데미지 상태 확인
     try {
-      final attackStatusResponse =
-          await _gameService.getAttackStatus(_roomCode!);
-      _log("""
-공격 상태 조회 성공:
-attackStatus: ${attackStatusResponse.attackStatus}
-attackPositionX: ${attackStatusResponse.attackPositionX}
-attackPositionY: ${attackStatusResponse.attackPositionY}
-damageStatus: ${attackStatusResponse.damageStatus}
-      """);
+      final defenseResult =
+          await _gameService.checkDamageStatusAsDefender(_roomCode!);
+      _log("수비자 측 damage 상태: $defenseResult");
     } catch (e) {
-      _log("공격 상태 조회 실패: $e");
+      _log("데미지 상태 조회 실패: $e");
       return;
     }
 
-    // === (3) 수비자 -> sendDamageStatus (실제로 맞았다고 가정)
+    // 3) 공격자 -> 턴 종료
     try {
-      // 예: 대미지를 입혔다(isDamaged=true), 게임 종료는 아직 아님(isFinished=false)
-      final isFinished = await _gameService.sendDamageStatus(
-        _roomCode!,
-        'A', // 공격 위치 x
-        1, // 공격 위치 y
-        true, // 대미지 여부
-        false, // 게임 종료 여부
-      );
-      _log("데미지 리포트 전송 완료, 게임 종료 여부: $isFinished");
-    } catch (e) {
-      _log("데미지 상태 전달 실패: $e");
-      return;
-    }
+      await _gameService.endTurn(_roomCode!);
+      _log("턴 종료 완료. 공격/수비 교대됩니다.");
 
-    // === (4) 공격자 -> getDamageStatus (수비자가 준 대미지 결과 확인)
-    try {
-      final damageStatusResponse =
-          await _gameService.getDamageStatus(_roomCode!);
-      _log("""
-공격 결과(대미지) 조회 성공:
-attackStatus: ${damageStatusResponse.attackStatus}
-damageStatus: ${damageStatusResponse.damageStatus}
-      """);
-    } catch (e) {
-      _log("대미지 결과 조회 실패: $e");
-      return;
-    }
-
-    // === (5) 공격자 -> endTurn (턴 종료 후, 공격/수비 전환)
-    try {
-      final endTurnResult = await _gameService.endTurn(_attackerId, _roomCode!);
-      _log("턴 종료 요청: ${endTurnResult ? '성공' : '실패'}");
-
-      if (endTurnResult) {
-        // 공격자/수비자 교체
-        setState(() {
-          attack = (attack == 1) ? 2 : 1;
-        });
-      }
+      // 실제 로직에서는 서버가 내부적으로 next turn을 진행.
+      // 여기서는 단순히 local 변수 swap
+      setState(() {
+        attack = (attack == 1) ? 2 : 1;
+      });
     } catch (e) {
       _log("턴 종료 실패: $e");
     }
@@ -172,52 +169,66 @@ damageStatus: ${damageStatusResponse.damageStatus}
       appBar: AppBar(
         title: const Text('GameService 테스트 화면'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Text(
-                "현재 공격자: $_attackerString\n현재 수비자: $_defenderString\nRoomCode: $_roomCode",
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    attack = (attack == 1) ? 2 : 1;
-                  });
-                },
-                child: const Text("공격자 <-> 수비자 변경"),
-              ),
-              const SizedBox(height: 16),
+        child: Column(
+          children: [
+            Text(
+              "현재 공격자: $_attackerString\n"
+              "현재 수비자: $_defenderString\n"
+              "RoomCode: $_roomCode",
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  attack = (attack == 1) ? 2 : 1;
+                });
+                _log("공격자/수비자 교체: $_attackerString -> $_defenderString");
+              },
+              child: const Text("공격자 <-> 수비자 변경"),
+            ),
+            const SizedBox(height: 16),
 
-              // 1) 방 생성
-              ElevatedButton(
-                onPressed: _createInvite,
-                child: const Text("방 생성 (createInvite)"),
-              ),
+            // 1) 방 생성
+            ElevatedButton(
+              onPressed: _createInvite,
+              child: const Text("방 생성 (createInvite)"),
+            ),
 
-              // 2) 방 참가
-              ElevatedButton(
-                onPressed: _joinRoom,
-                child: const Text("방 참가 (joinRoom)"),
-              ),
+            // 2) 초대 승인 (방 참가)
+            ElevatedButton(
+              onPressed: _joinRoom,
+              child: const Text("방 참가 (joinRoom)"),
+            ),
 
-              const Divider(height: 32, thickness: 2),
+            // 6) 보드 배치
+            ElevatedButton(
+              onPressed: _sendBoard,
+              child: const Text("보드 배치 (sendBoard)"),
+            ),
 
-              // 3) 전체 공격 시퀀스 (performAttack -> getAttackStatus -> sendDamageStatus -> getDamageStatus -> endTurn)
-              ElevatedButton(
-                onPressed: _attackSequence,
-                child: const Text("공격 시퀀스 실행"),
-              ),
+            // 7) 방 상태 확인
+            ElevatedButton(
+              onPressed: _checkGameStatus,
+              child: const Text("방 상태 확인 (getGameStatus)"),
+            ),
 
-              const SizedBox(height: 32),
+            const Divider(thickness: 2, height: 32),
 
-              // 결과 로그 표시
-              Text(
-                _resultText,
-              ),
-            ],
-          ),
+            // 9) 공격 -> 8) 수비 -> 10) 턴 종료 (간단 시퀀스)
+            ElevatedButton(
+              onPressed: _attackAndCheckDamage,
+              child: const Text("공격 + 수비 확인 + 턴 종료"),
+            ),
+
+            const SizedBox(height: 24),
+
+            // 결과 로그 표시
+            Text(
+              _resultText,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
         ),
       ),
     );

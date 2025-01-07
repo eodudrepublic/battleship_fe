@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:battleship_fe/common/app_colors.dart';
 import 'package:battleship_fe/view/game/widget/enemy_board.dart';
 import 'package:battleship_fe/view/game/widget/my_board.dart';
@@ -6,7 +7,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../common/utils/logger.dart';
 import '../../../controller/game/game_controller.dart';
-import '../../../service/game_service.dart';
+import '../../model/game_state.dart';
+import '../../model/user_model.dart';
+import '../../service/game_service.dart';
 
 class GameView extends StatefulWidget {
   const GameView({super.key});
@@ -19,171 +22,161 @@ class _GameViewState extends State<GameView> {
   /// GameController (board 표시 등을 위해)
   final GameController controller = Get.find<GameController>();
 
-  /// 게임 서버 통신을 테스트하기 위한 GameService
+  /// 게임 서버 통신을 위한 GameService
   final GameService _gameService = GameService();
 
-  /// 예시) 두 사용자 ID
-  int user1Id = 25;
-  int user2Id = 50;
+  Timer? _defenderCheckTimer;
 
-  /// attack = 1이면 user1이 공격자, 2면 user2가 공격자
-  int attack = 1;
-
-  /// 현재 생성된 방 코드
-  String? _roomCode;
-
-  /// 콘솔에만 찍히게 할 헬퍼
-  void _log(String message) {
-    Log.info(message);
+  @override
+  void initState() {
+    super.initState();
+    _startDefenderCheckTimer(); // 수비자 폴링
   }
 
-  /// 현재 공격자/수비자 ID
-  int get _attackerId => (attack == 1) ? user1Id : user2Id;
-  int get _defenderId => (attack == 1) ? user2Id : user1Id;
+  @override
+  void dispose() {
+    _defenderCheckTimer?.cancel();
+    super.dispose();
+  }
 
-  /// 공격자/수비자 텍스트
-  String get _attackerString =>
-      attack == 1 ? 'User1($user1Id)' : 'User2($user2Id)';
-  String get _defenderString =>
-      attack == 1 ? 'User2($user2Id)' : 'User1($user1Id)';
+  /// 5초 간격으로 수비자 Damage 상태 확인 (최대 20초)
+  void _startDefenderCheckTimer() {
+    int elapsed = 0;
+    _defenderCheckTimer =
+        Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (!mounted || GameState().isGameOver) {
+        timer.cancel();
+        return;
+      }
+      elapsed += 5;
+      if (elapsed > 100) {
+        timer.cancel();
+        return;
+      }
 
-  /// 1) 방 생성
-  Future<void> _createInvite() async {
-    try {
-      final result = await _gameService.createInvite(_attackerId);
-      _roomCode = result['room_code'];
-      _log(
-          "방 생성 완료\nRoomCode: $_roomCode\nInviteLink: ${result['invite_link']}");
-    } catch (e) {
-      _log("방 생성 실패: $e");
+      // 내가 수비자(즉, isMyTurn=false)일 때만 체크
+      if (GameState().isMyTurn == false) {
+        final result = await _gameService.checkDamageStatusAsDefender(
+          GameState().roomCode!,
+        );
+        final damageStatus = result["damage_status"];
+        final attackPos = result["attack_position"] ?? "";
+        final gameStatus = result["game_status"];
+
+        // "damage_status" 가 "damaged"/"missed" 라면 => 공격이 들어옴
+        if (damageStatus == "damaged" || damageStatus == "missed") {
+          // 내 보드에 히트/미스 표시
+          _markMyBoard(attackPos, damageStatus);
+
+          if (gameStatus == "completed") {
+            // 게임 종료 - 수비자 패배
+            GameState().endGame();
+            Get.snackbar("패배", "상대의 마지막 공격이 적중했습니다!");
+          } else {
+            // 턴 종료
+            await _gameService.endTurn(GameState().roomCode!);
+            GameState().toggleTurn();
+          }
+          timer.cancel();
+        }
+      }
+    });
+  }
+
+  /// 공격자가 '공격하기' 버튼을 누를 때
+  void _onAttackButtonPressed() async {
+    // 내가 공격자( isMyTurn=true )인지 확인
+    if (GameState().isMyTurn == false || GameState().isGameOver) return;
+
+    // 예: controller.selectedAttackCell.value -> [row, col]
+    final selectedCell = controller.selectedAttackCell.value;
+    if (selectedCell == null) return;
+
+    final row = selectedCell[0];
+    final col = selectedCell[1];
+
+    // (1) row,col -> "A1" 형태 문자열로 변환
+    final String cellPos = _convertRowColToString(row, col);
+
+    // (2) 공격 수행
+    final result = await _gameService.performAttack(
+      GameState().roomCode!,
+      AppUser().id!, // 나의 ID
+      GameState().opponentId!, // 상대방 ID
+      cellPos,
+    );
+
+    final damageStatus = result["damage_status"];
+    final gameStatus = result["game_status"];
+
+    // (3) 내 EnemyBoard 에 히트/미스 표시
+    if (damageStatus == "damaged") {
+      _markEnemyBoard(cellPos, isHit: true);
+    } else if (damageStatus == "missed") {
+      _markEnemyBoard(cellPos, isHit: false);
+    }
+
+    // (4) 게임 종료 여부
+    if (gameStatus == "completed") {
+      // 내가 최종 성공 -> 승리
+      GameState().endGame();
+      Get.snackbar("승리", "게임에서 승리하였습니다!");
+    } else {
+      // 공격 끝났으니 -> 턴 종료
+      await _gameService.endTurn(GameState().roomCode!);
+      GameState().toggleTurn();
     }
   }
 
-  /// 2) 방 참가
-  Future<void> _joinRoom() async {
-    if (_roomCode == null) {
-      _log("먼저 방을 생성(createInvite)하세요.");
-      return;
+  /// "A1" -> (row=0, col=0)
+  void _markMyBoard(String cellPos, String damageStatus) {
+    // 파싱
+    final parsed = _convertStringToRowCol(cellPos);
+    if (parsed == null) return;
+    final row = parsed[0];
+    final col = parsed[1];
+
+    // damageStatus = "damaged" or "missed"
+    if (damageStatus == "damaged") {
+      controller.myBoardMarkers[row][col] = 'enemy_hit';
+    } else {
+      controller.myBoardMarkers[row][col] = 'enemy_miss';
     }
-    try {
-      final result = await _gameService.joinRoom(_roomCode!, _defenderId);
-      _log("""
-방 참가 성공
-is_matched: ${result["is_matched"]}
-room_code: ${result["room_code"]}
-opponent: ${result["opponent"]}
-is_first: ${result["is_first"]}
-      """);
-    } catch (e) {
-      _log("방 참가 실패: $e");
-    }
+    controller.myBoardMarkers.refresh();
   }
 
-  /// 3) 공격 시퀀스 테스트
-  ///    performAttack -> getAttackStatus -> sendDamageStatus -> getDamageStatus -> endTurn
-  Future<void> _attackSequence() async {
-    if (_roomCode == null) {
-      _log("먼저 방을 생성(createInvite) 및 참가(joinRoom)하세요.");
-      return;
-    }
+  /// 공격자가 Enemy보드(상대 보드)에 히트/미스 표시
+  void _markEnemyBoard(String cellPos, {required bool isHit}) {
+    final parsed = _convertStringToRowCol(cellPos);
+    if (parsed == null) return;
+    final row = parsed[0];
+    final col = parsed[1];
 
-    // (1) 공격자 -> performAttack
-    try {
-      final performAttackResult = await _gameService.performAttack(
-        _roomCode!,
-        _attackerId,
-        _defenderId,
-        'A', // 예시 위치 X
-        1, // 예시 위치 Y
-      );
-      _log(
-          "공격 수행: attackStatus = ${performAttackResult ? 'attack' : 'not attack'}");
+    controller.enemyBoardMarkers[row][col] = isHit ? 'my_hit' : 'my_miss';
+    controller.enemyBoardMarkers.refresh();
+  }
 
-      // 공격 성공/실패 여부를 이용해 enemyBoardMarkers 업데이트 예시
-      // 여기서는 row=0, col=0 위치를 공격했다고 가정
-      // 필요에 따라 실제 (A1) -> (row=0, col=0) 매핑
-      final rowIndex = 0;
-      final colIndex = 0;
-      if (performAttackResult) {
-        // 임의로 "my_hit" 표시
-        controller.enemyBoardMarkers[rowIndex][colIndex] = 'my_hit';
-      } else {
-        controller.enemyBoardMarkers[rowIndex][colIndex] = 'my_miss';
-      }
-      controller.enemyBoardMarkers.refresh();
-    } catch (e) {
-      _log("공격 수행 실패: $e");
-      return;
-    }
+  /// "A1" -> (0,0)
+  /// "C5" -> (2,4)
+  List<int>? _convertStringToRowCol(String pos) {
+    if (pos.length < 2) return null;
+    // 첫 문자: A~J
+    final rowChar = pos[0].toUpperCase();
+    final colStr = pos.substring(1);
 
-    // (2) 수비자 -> getAttackStatus
-    try {
-      final attackStatusResponse =
-          await _gameService.getAttackStatus(_roomCode!);
-      _log("""
-공격 상태 조회 성공:
-attackStatus: ${attackStatusResponse.attackStatus}
-attackPositionX: ${attackStatusResponse.attackPositionX}
-attackPositionY: ${attackStatusResponse.attackPositionY}
-damageStatus: ${attackStatusResponse.damageStatus}
-      """);
+    final rowIndex = rowChar.codeUnitAt(0) - 'A'.codeUnitAt(0);
+    final colIndex = int.tryParse(colStr) ?? -1;
+    if (rowIndex < 0 || rowIndex > 9) return null; // 범위체크
+    if (colIndex < 1 || colIndex > 10) return null;
 
-      // 수비자가 공격받았다고 판단되면, 실제 내 보드에 enemy_hit/ enemy_miss 표기 가능
-      // 예: attackPositionX='A'(row=0), attackPositionY=1(col=0) 로 가정
-      if (attackStatusResponse.attackStatus == 'attack') {
-        // 간단하게 "enemy_hit" 표시
-        final rowIndex = 0;
-        final colIndex = 0;
-        controller.enemyAttacksCell(rowIndex, colIndex);
-        // 내부적으로 myBoardMarkers[rowIndex][colIndex] = 'enemy_hit' or 'enemy_miss'
-      }
-    } catch (e) {
-      _log("공격 상태 조회 실패: $e");
-      return;
-    }
+    return [rowIndex, colIndex - 1]; // 0-based
+  }
 
-    // (3) 수비자 -> sendDamageStatus (맞았다고 가정)
-    try {
-      final isFinished = await _gameService.sendDamageStatus(
-        _roomCode!,
-        'A', // 공격 위치 x
-        1, // 공격 위치 y
-        true, // 대미지 여부
-        false, // 게임 종료 여부
-      );
-      _log("데미지 리포트 전송 완료, 게임 종료 여부: $isFinished");
-    } catch (e) {
-      _log("데미지 상태 전달 실패: $e");
-      return;
-    }
-
-    // (4) 공격자 -> getDamageStatus
-    try {
-      final damageStatusResponse =
-          await _gameService.getDamageStatus(_roomCode!);
-      _log("""
-공격 결과(대미지) 조회 성공:
-attackStatus: ${damageStatusResponse.attackStatus}
-damageStatus: ${damageStatusResponse.damageStatus}
-      """);
-    } catch (e) {
-      _log("대미지 결과 조회 실패: $e");
-      return;
-    }
-
-    // (5) 공격자 -> endTurn (턴 종료 후, 공격자/수비자 교대)
-    try {
-      final endTurnResult = await _gameService.endTurn(_attackerId, _roomCode!);
-      _log("턴 종료: ${endTurnResult ? '성공(상대에게 턴 넘어감)' : '실패'}");
-
-      if (endTurnResult) {
-        setState(() {
-          attack = (attack == 1) ? 2 : 1;
-        });
-      }
-    } catch (e) {
-      _log("턴 종료 실패: $e");
-    }
+  /// (0,0) -> "A1"
+  String _convertRowColToString(int row, int col) {
+    final rowChar = String.fromCharCode('A'.codeUnitAt(0) + row);
+    final colStr = (col + 1).toString();
+    return '$rowChar$colStr';
   }
 
   @override
@@ -200,9 +193,7 @@ damageStatus: ${damageStatusResponse.damageStatus}
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // -------------------------
-              // (1) 상단 : 내 보드 표시
-              // -------------------------
+              // (1) 내 보드
               Container(
                 height: 0.35.sh,
                 padding: EdgeInsets.only(top: 40.sp),
@@ -220,9 +211,7 @@ damageStatus: ${damageStatusResponse.damageStatus}
               ),
               SizedBox(height: 10.sp),
 
-              // -------------------------
-              // (2) 하단 : 적 보드 표시
-              // -------------------------
+              // (2) 적 보드
               Container(
                 height: 1.sw - 10.sp,
                 width: 1.sw - 10.sp,
@@ -235,14 +224,12 @@ damageStatus: ${damageStatusResponse.damageStatus}
               ),
               SizedBox(height: 10.sp),
 
-              // -------------------------
-              // (3) 공격하기 버튼 (원래 GameView에 있던 기능)
-              // -------------------------
+              // (3) 공격하기 버튼
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // TODO : 남은 배치시간 받아서 표시하도록 (서버 연결 필요)
+                  // TODO : 남은 시간 표시
                   Container(
                     height: 0.06.sh,
                     width: 0.30.sw,
@@ -258,20 +245,18 @@ damageStatus: ${damageStatusResponse.damageStatus}
                     ),
                   ),
                   SizedBox(width: 10.sp),
+                  // 공격 버튼
                   Obx(() {
                     bool canAttack =
-                        (controller.selectedAttackCell.value != null);
+                        (controller.selectedAttackCell.value != null) &&
+                            (GameState().isMyTurn == true) &&
+                            (!GameState().isGameOver);
+
                     return SizedBox(
                       height: 0.06.sh,
                       width: 0.30.sw,
                       child: ElevatedButton(
-                        onPressed: canAttack
-                            ? () {
-                                Log.debug(
-                                    "Attempting to attack selected cell...");
-                                controller.attackSelectedCell();
-                              }
-                            : null,
+                        onPressed: canAttack ? _onAttackButtonPressed : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.attackButtonColor,
                           disabledBackgroundColor: AppColors.timeWidgetColor,
@@ -291,37 +276,6 @@ damageStatus: ${damageStatusResponse.damageStatus}
                     );
                   }),
                 ],
-              ),
-
-              SizedBox(height: 10.sp),
-              const Divider(thickness: 2, height: 2),
-
-              // -------------------------
-              // (4) [추가] GameServiceTest와 유사한 버튼들
-              // -------------------------
-              // 화면에 텍스트는 표시하지 않고, 콘솔 출력만 하도록 구성
-              Text(
-                  "현재 공격자: $_attackerString / 수비자: $_defenderString\nRoomCode: $_roomCode"),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    attack = (attack == 1) ? 2 : 1;
-                  });
-                  _log("공격자/수비자 교체: $_attackerString -> $_defenderString");
-                },
-                child: const Text("공격자 <-> 수비자 교체"),
-              ),
-              ElevatedButton(
-                onPressed: _createInvite,
-                child: const Text("방 생성 (createInvite)"),
-              ),
-              ElevatedButton(
-                onPressed: _joinRoom,
-                child: const Text("방 참가 (joinRoom)"),
-              ),
-              ElevatedButton(
-                onPressed: _attackSequence,
-                child: const Text("공격 시퀀스 테스트 (performAttack 등)"),
               ),
             ],
           ),
