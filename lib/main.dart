@@ -1,5 +1,8 @@
 import 'package:battleship_fe/controller/game/game_controller.dart';
-import 'package:battleship_fe/view/game/game_service_test.dart';
+import 'package:battleship_fe/view/game/entering_view.dart';
+import 'package:battleship_fe/view/game/test/game_service_test.dart';
+import 'package:battleship_fe/view/game/waiting_view.dart';
+import 'package:battleship_fe/view/landing/landing_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -35,9 +38,25 @@ class MyApp extends StatelessWidget {
           // debugShowCheckedModeBanner: false,
           initialRoute: '/login',
           getPages: [
+            /// 로그인
             GetPage(name: '/login', page: () => LoginView()),
+
+            /// 메인화면
+            GetPage(name: '/landing', page: () => LandingView()),
+
+            /// 대기화면
+            GetPage(name: '/waiting', page: () => WaitingView()),
+
+            /// 게임 방 목록 화면
+            GetPage(name: '/entering', page: () => EnteringView()),
+
+            /// 유닛 배치
             GetPage(name: '/deploy', page: () => DeployView()),
+
+            /// 게임화면
             GetPage(name: '/game', page: () => GameView()),
+
+            // 게임 서비스 테스트
             GetPage(name: '/test', page: () => GameServiceTest()),
           ],
         );

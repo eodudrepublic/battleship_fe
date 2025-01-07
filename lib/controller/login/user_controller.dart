@@ -41,7 +41,7 @@ class UserController extends GetxController {
           var responseData = jsonDecode(response.body);
           String message = responseData["message"];
           Log.info("서버 전송 성공! Server response: $message");
-          Get.snackbar('서버 응답', message);
+          // Get.snackbar('서버 응답', message);
         } else {
           Log.error('서버와의 통신 중 문제가 발생했습니다. 상태 코드: ${response.statusCode}');
           Get.snackbar(

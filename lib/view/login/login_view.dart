@@ -28,7 +28,7 @@ class LoginView extends StatelessWidget {
               width: 0.6.sw,
             ),
             Image.asset(
-              'assets/icons/main_icon.png',
+              'assets/icons/battlebara_moving.gif',
               width: 0.8.sw,
               height: 0.8.sw,
             ),
@@ -86,37 +86,42 @@ class LoginView extends StatelessWidget {
   Widget _loginButton(UserController controller) {
     return Obx(() {
       if (controller.user.value == null) {
-        return ElevatedButton(
-          onPressed: () {
-            controller.kakaoLogin();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.kakaotalkYellow,
-            padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 5.sp),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(12), // 테두리 곡률 설정 : 12 픽셀(Pixel)
+        return SizedBox(
+          width: 0.6.sw,
+          child: ElevatedButton(
+            onPressed: () async {
+              await controller.kakaoLogin();
+              if (controller.user.value != null) {
+                Get.offNamed('/landing');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.kakaotalkYellow,
+              padding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 5.sp),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(12), // 테두리 곡률 설정 : 12 픽셀(Pixel)
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/icons/kakao_icon.png',
-                width: 30.sp,
-                height: 30.sp,
-              ),
-              SizedBox(width: 10.sp),
-              Text(
-                '카카오 로그인',
-                style:
-                    TextStyle(color: AppColors.kakaotalkLabel, fontSize: 25.sp),
-              ),
-            ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/icons/kakao_icon.png',
+                  width: 30.sp,
+                  height: 30.sp,
+                ),
+                SizedBox(width: 10.sp),
+                Text(
+                  '카카오 로그인',
+                  style: TextStyle(
+                      color: AppColors.kakaotalkLabel, fontSize: 25.sp),
+                ),
+              ],
+            ),
           ),
         );
       } else {
-        // TODO : 로그인 완료 시 처리
         return Text(
           '카카오 로그인 완료!',
           style: TextStyle(color: AppColors.kakaotalkLabel, fontSize: 25.sp),
