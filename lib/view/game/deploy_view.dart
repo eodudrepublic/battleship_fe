@@ -211,8 +211,6 @@ class DeployView extends StatelessWidget {
                                     fontWeight: FontWeight.bold),
                               ),
                               SizedBox(height: 6.sp),
-                              // TODO : 유닛을 배치하면 자동으로 isHorizontal이 바뀌고 있음
-                              // TODO : -> isHorizontal이 토글될때 콘솔 출력을 추가해서, 어느 시점에 isHorizontal이 바뀌는지 확인
                               GestureDetector(
                                 onTap: () {
                                   if (!controller.isDeploymentComplete.value) {

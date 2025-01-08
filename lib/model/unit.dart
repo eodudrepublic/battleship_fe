@@ -1,3 +1,5 @@
+import '../common/utils/logger.dart';
+
 class Unit {
   final String id;
   final String name;
@@ -33,7 +35,7 @@ class Unit {
   // '회전' 시에도 imagePath를 다시 계산
   // -----------------------------
   void toggleOrientation() {
-    // TODO : 여기에 콘솔 출력 추가 -> 언제 호출되는지 확인
+    Log.trace('!!! 유닛 회전 : Unit.toggleOrientation() called !!!');
     isHorizontal = !isHorizontal;
     _updateImagePath();
   }

@@ -141,7 +141,6 @@ class GameController extends GetxController {
     );
 
     unitType.isPlaced = true; // 이제 'exist' 이미지가 될 조건
-    unitType.toggleOrientation(); // <- 주의! 회전시키는 게 아니라면 remove
 
     placedUnits.add(placedUnit);
     unitCounts[unitType.id] = unitCounts[unitType.id]! - 1;
