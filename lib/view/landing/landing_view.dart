@@ -58,6 +58,9 @@ class LandingView extends StatelessWidget {
                 'assets/icons/branding.png',
                 width: 0.6.sw,
               ),
+              SizedBox(
+                height: 20.sp,
+              ),
               Image.asset(
                 'assets/icons/battlebara_moving.gif',
                 width: 0.8.sw,

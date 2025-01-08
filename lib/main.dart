@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          initialRoute: '/win',
+          initialRoute: '/login',
           getPages: [
             /// 로그인
             GetPage(name: '/login', page: () => LoginView()),

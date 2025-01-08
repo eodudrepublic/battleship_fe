@@ -83,36 +83,39 @@ class _EnteringViewState extends State<EnteringView> {
                         ),
                         contentPadding: EdgeInsets.symmetric(
                             horizontal: 20.sp, vertical: 10.sp),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            value.isEmpty
-                                ? Icons.clear_rounded
-                                : Icons.arrow_forward_ios_rounded,
-                          ),
-                          onPressed: () async {
-                            // 방 코드 수동 입력 -> joinRoom 시도 가능
-                            if (value.isNotEmpty) {
-                              Log.info("직접 입력한 room_code: $value");
-                              final result =
-                                  await gameService.joinRoom(value, myId);
-                              if (result["is_matched"] == true) {
-                                final isFirst = result["is_first"] as bool;
-                                final opponent = result["opponent"] as int;
+                        suffixIcon: Container(
+                          padding: EdgeInsets.only(right: 10.sp),
+                          child: IconButton(
+                            icon: Icon(
+                              value.isEmpty
+                                  ? Icons.clear_rounded
+                                  : Icons.arrow_forward_ios_rounded,
+                            ),
+                            onPressed: () async {
+                              // 방 코드 수동 입력 -> joinRoom 시도 가능
+                              if (value.isNotEmpty) {
+                                Log.info("직접 입력한 room_code: $value");
+                                final result =
+                                    await gameService.joinRoom(value, myId);
+                                if (result["is_matched"] == true) {
+                                  final isFirst = result["is_first"] as bool;
+                                  final opponent = result["opponent"] as int;
 
-                                // GameState 저장
-                                GameState().setGameState(
-                                  isFirstPlayer: isFirst,
-                                  opponentId: opponent,
-                                  roomCode: value,
-                                );
+                                  // GameState 저장
+                                  GameState().setGameState(
+                                    isFirstPlayer: isFirst,
+                                    opponentId: opponent,
+                                    roomCode: value,
+                                  );
 
-                                Get.offNamed("/deploy");
+                                  Get.offNamed("/deploy");
+                                }
+                              } else {
+                                // 비어있다면 그냥 clear
+                                _controller.clear();
                               }
-                            } else {
-                              // 비어있다면 그냥 clear
-                              _controller.clear();
-                            }
-                          },
+                            },
+                          ),
                         ),
                       ),
                     );
@@ -121,7 +124,13 @@ class _EnteringViewState extends State<EnteringView> {
               ),
               // (2) 서버에서 가져온 "before" 상태 방 목록 보여주기
               Expanded(
-                child: ListView.builder(
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 열의 개수를 2로 설정
+                    crossAxisSpacing: 10.sp, // 열 간의 간격
+                    mainAxisSpacing: 10.sp, // 행 간의 간격
+                    childAspectRatio: 1, // 각 셀의 가로세로 비율 조정
+                  ),
                   itemCount: _waitingRooms.length,
                   itemBuilder: (context, index) {
                     final room = _waitingRooms[index];
