@@ -54,7 +54,9 @@ class EnemyBoardView extends StatelessWidget {
                         ? const Text('')
                         : Text(
                             index.toString(),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontFamily: 'Sejong',
+                                fontWeight: FontWeight.bold),
                           ),
                   ),
                 ),
@@ -74,7 +76,9 @@ class EnemyBoardView extends StatelessWidget {
                           color: AppColors.boardColor,
                           child: Text(
                             String.fromCharCode(65 + rowIndex),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontFamily: 'Sejong',
+                                fontWeight: FontWeight.bold),
                           ),
                         );
                       } else {

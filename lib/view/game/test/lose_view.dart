@@ -20,6 +20,7 @@ class LoseView extends StatelessWidget {
             Text(
               '패배바라...',
               style: TextStyle(
+                  fontFamily: 'Sejong',
                   color: Colors.black,
                   fontSize: 35.sp,
                   fontWeight: FontWeight.bold),
@@ -54,6 +55,7 @@ class LoseView extends StatelessWidget {
                 child: Text(
                   '홈으로',
                   style: TextStyle(
+                      fontFamily: 'Sejong',
                       color: Colors.black,
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold),

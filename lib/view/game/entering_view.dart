@@ -68,7 +68,10 @@ class _EnteringViewState extends State<EnteringView> {
                   builder: (context, value, child) {
                     return TextField(
                       controller: _controller,
-                      style: TextStyle(fontSize: 18.sp, color: Colors.black),
+                      style: TextStyle(
+                          fontFamily: 'Sejong',
+                          fontSize: 18.sp,
+                          color: Colors.black),
                       decoration: InputDecoration(
                         hintText: "방 코드 입력",
                         enabledBorder: OutlineInputBorder(
@@ -191,6 +194,7 @@ class _EnteringViewState extends State<EnteringView> {
                     child: Text(
                       roomCode,
                       style: TextStyle(
+                        fontFamily: 'Sejong',
                         fontSize: 20, // 텍스트 크기
                         fontWeight: FontWeight.bold, // 텍스트 굵기
                         color: Colors.black, // 텍스트 색상

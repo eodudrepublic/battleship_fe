@@ -253,7 +253,9 @@ class _GameViewState extends State<GameView> {
                     child: Text(
                       "00:57",
                       style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold),
+                          fontFamily: 'Sejong',
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                   SizedBox(width: 10.sp),
@@ -279,6 +281,7 @@ class _GameViewState extends State<GameView> {
                         child: Text(
                           "공격하기",
                           style: TextStyle(
+                            fontFamily: 'Sejong',
                             color: canAttack ? Colors.white : Colors.grey,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,

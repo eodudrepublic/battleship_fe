@@ -20,6 +20,7 @@ class WinView extends StatelessWidget {
             Text(
               '승리바라!!!',
               style: TextStyle(
+                  fontFamily: 'Sejong',
                   color: Colors.black,
                   fontSize: 35.sp,
                   fontWeight: FontWeight.bold),
@@ -54,6 +55,7 @@ class WinView extends StatelessWidget {
                 child: Text(
                   '홈으로',
                   style: TextStyle(
+                      fontFamily: 'Sejong',
                       color: Colors.black,
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold),

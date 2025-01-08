@@ -74,7 +74,9 @@ class DeployBoardView extends StatelessWidget {
                         ? Text('') // 빈 셀
                         : Text(
                             index.toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontFamily: 'Sejong',
+                                fontWeight: FontWeight.bold),
                           ),
                   ),
                 ),
@@ -94,7 +96,9 @@ class DeployBoardView extends StatelessWidget {
                           color: AppColors.boardColor,
                           child: Text(
                             String.fromCharCode(65 + rowIndex), // A~J
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontFamily: 'Sejong',
+                                fontWeight: FontWeight.bold),
                           ),
                         );
                       } else {

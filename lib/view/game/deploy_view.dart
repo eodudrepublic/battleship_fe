@@ -44,7 +44,9 @@ class DeployView extends StatelessWidget {
                   children: [
                     Text("배치하기",
                         style: TextStyle(
-                            fontSize: 35.sp, fontWeight: FontWeight.bold)),
+                            fontFamily: 'Sejong',
+                            fontSize: 35.sp,
+                            fontWeight: FontWeight.bold)),
                     Container(
                       padding: EdgeInsets.symmetric(vertical: 10.sp),
                       child: Row(
@@ -63,7 +65,9 @@ class DeployView extends StatelessWidget {
                             child: Text(
                               "00:57",
                               style: TextStyle(
-                                  fontSize: 18.sp, fontWeight: FontWeight.bold),
+                                  fontFamily: 'Sejong',
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                           SizedBox(width: 10.sp),
@@ -108,6 +112,7 @@ class DeployView extends StatelessWidget {
                               child: Text(
                                 "배치 완료",
                                 style: TextStyle(
+                                  fontFamily: 'Sejong',
                                   fontSize: 18.sp,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -195,18 +200,21 @@ class DeployView extends StatelessWidget {
                               Text(
                                 unitType.name,
                                 style: TextStyle(
+                                    fontFamily: 'Sejong',
                                     fontSize: 15.sp,
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 '(${unitType.width} x ${unitType.height})',
                                 style: TextStyle(
+                                    fontFamily: 'Sejong',
                                     fontSize: 15.sp,
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 '남은 개수: $remaining',
                                 style: TextStyle(
+                                    fontFamily: 'Sejong',
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.bold),
                               ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../common/app_colors.dart';
@@ -118,12 +119,14 @@ class _WaitingViewState extends State<WaitingView> {
               Text(
                 "상대를 기다리는 중",
                 style: TextStyle(
+                    fontFamily: 'Sejong',
                     fontSize: 30.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.black),
               ),
               Text("방코드: $displayedRoomCode",
                   style: TextStyle(
+                      fontFamily: 'Sejong',
                       fontSize: 25.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.black)),
@@ -142,9 +145,31 @@ class _WaitingViewState extends State<WaitingView> {
                 width: 0.55.sw,
                 height: 0.075.sh,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     Log.info('방 코드 복사하기');
-                    // TODO : 클립보드에 roomCode를 복사하는 기능 추가
+                    final displayedRoomCode =
+                        GameState().roomCode ?? widget.roomCode ?? '';
+                    if (displayedRoomCode.isNotEmpty) {
+                      await Clipboard.setData(
+                          ClipboardData(text: displayedRoomCode));
+                      Get.snackbar(
+                        '복사 완료',
+                        '방 코드가 클립보드에 복사되었습니다.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.black54,
+                        colorText: Colors.white,
+                        duration: const Duration(seconds: 2),
+                      );
+                    } else {
+                      Get.snackbar(
+                        '복사 실패',
+                        '복사할 방 코드가 없습니다.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white,
+                        duration: const Duration(seconds: 2),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.timeWidgetColor,
@@ -159,9 +184,11 @@ class _WaitingViewState extends State<WaitingView> {
                   child: Text(
                     '방 코드 복사하기',
                     style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold),
+                      fontFamily: 'Sejong',
+                      color: Colors.black,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -189,6 +216,7 @@ class _WaitingViewState extends State<WaitingView> {
                   child: Text(
                     '취소하기',
                     style: TextStyle(
+                        fontFamily: 'Sejong',
                         color: Colors.black,
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold),

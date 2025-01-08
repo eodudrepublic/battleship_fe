@@ -89,6 +89,7 @@ class LandingView extends StatelessWidget {
                   child: Text(
                     '혼자바라',
                     style: TextStyle(
+                        fontFamily: 'Sejong',
                         color: Colors.black,
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold),
@@ -119,8 +120,9 @@ class LandingView extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: Text(
-                    '게임 생성하기',
+                    '생성바라',
                     style: TextStyle(
+                        fontFamily: 'Sejong',
                         color: Colors.black,
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold),
@@ -151,8 +153,9 @@ class LandingView extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: Text(
-                    '게임 참여하기',
+                    '참여바라',
                     style: TextStyle(
+                        fontFamily: 'Sejong',
                         color: Colors.black,
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold),

@@ -144,7 +144,8 @@ class LoginView extends StatelessWidget {
           ),
           child: const Text(
             'Logout',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(
+                fontFamily: 'Sejong', color: Colors.white, fontSize: 16),
           ),
         );
       } else {
