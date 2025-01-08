@@ -1,0 +1,19 @@
+flutter_native_splash:
+  color: "#EDFAFF"
+  image: "assets/icons/splash_icon.png"
+  color_dark: "#EDFAFF"
+  image_dark: "assets/icons/splash_icon.png"
+
+  android_12:
+    color: "#EDFAFF"
+    image: "assets/icons/splash_icon.png"
+    color_dark: "#EDFAFF"
+    image_dark: "assets/icons/splash_icon.png"
+
+  web: false
+  ios: true
+  android: true
+
+  # 이미지 맞춤 방식 설정
+  android_gravity: center
+  ios_content_mode: center
