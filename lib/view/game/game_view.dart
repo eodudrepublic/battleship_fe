@@ -76,6 +76,8 @@ class _GameViewState extends State<GameView> {
             // 게임 종료 - 수비자 패배
             GameState().endGame();
             Get.snackbar("패배", "상대의 마지막 공격이 적중했습니다!");
+            Log.wtf('패배바라 : 상대의 마지막 공격이 적중했습니다!');
+            Get.offNamed("/lose");
           } else {
             // 공격 끝 -> 턴 종료 + 공격/수비 교대
             await _gameService.endTurn(GameState().roomCode!);
@@ -125,6 +127,8 @@ class _GameViewState extends State<GameView> {
       // 내가 최종 성공 -> 승리
       GameState().endGame();
       Get.snackbar("승리", "게임에서 승리하였습니다!");
+      Log.info('승리바라 : 마지막 공격이 적중했습니다!');
+      Get.offNamed("/win");
     } else {
       // 공격 끝 -> 공격/수비 교대 (턴 종료 안함)
       GameState().toggleTurn();

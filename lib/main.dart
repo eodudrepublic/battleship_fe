@@ -1,7 +1,9 @@
 import 'package:battleship_fe/controller/game/game_controller.dart';
 import 'package:battleship_fe/view/game/entering_view.dart';
 import 'package:battleship_fe/view/game/test/game_service_test.dart';
+import 'package:battleship_fe/view/game/test/lose_view.dart';
 import 'package:battleship_fe/view/game/waiting_view.dart';
+import 'package:battleship_fe/view/game/win_view.dart';
 import 'package:battleship_fe/view/landing/landing_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +45,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Battleship',
           // debugShowCheckedModeBanner: false,
-          initialRoute: '/login',
+          initialRoute: '/win',
           getPages: [
             /// 로그인
             GetPage(name: '/login', page: () => LoginView()),
@@ -62,6 +64,12 @@ class MyApp extends StatelessWidget {
 
             /// 게임화면
             GetPage(name: '/game', page: () => GameView()),
+
+            /// 승리화면
+            GetPage(name: '/win', page: () => WinView()),
+
+            /// 패배화면
+            GetPage(name: '/lose', page: () => LoseView()),
 
             // 게임 서비스 테스트
             GetPage(name: '/test', page: () => GameServiceTest()),
