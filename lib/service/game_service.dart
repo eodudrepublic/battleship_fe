@@ -289,7 +289,6 @@ class GameService {
   /// -----------------------------
   /// POST /games/end-turn?room_code=xxx
   /// 응답: null (200 OK)
-  // TODO : 공격때도 endTurn 호출하는 것 같은데 확인하고 수정 ㄱㄱ
   Future<void> endTurn(String roomCode) async {
     final url = Uri.parse("$serverUrl:8000/games/end-turn?room_code=$roomCode");
 

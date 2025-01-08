@@ -126,8 +126,7 @@ class _GameViewState extends State<GameView> {
       GameState().endGame();
       Get.snackbar("승리", "게임에서 승리하였습니다!");
     } else {
-      // 공격 끝 -> 턴 종료 -> 공격/수비 교대
-      await _gameService.endTurn(GameState().roomCode!);
+      // 공격 끝 -> 공격/수비 교대 (턴 종료 안함)
       GameState().toggleTurn();
 
       // 이제 내가 수비자가 되었다면, 다시 _startDefenderCheckTimer 실행
