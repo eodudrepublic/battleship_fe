@@ -53,23 +53,33 @@ class DeployView extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // TODO : 남은 배치시간 받아서 표시하도록 (서버 연결 필요)
-                          Container(
-                            height: 0.06.sh,
-                            width: 0.30.sw,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.timeWidgetColor,
-                              borderRadius: BorderRadius.circular(10.sp),
-                            ),
-                            child: Text(
-                              "00:57",
-                              style: TextStyle(
-                                  fontFamily: 'Sejong',
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
+                          Obx(() {
+                            int minutes =
+                                controller.remainingDeploymentSeconds.value ~/
+                                    60;
+                            int seconds =
+                                controller.remainingDeploymentSeconds.value %
+                                    60;
+                            String formattedTime =
+                                '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+                            return Container(
+                              height: 0.06.sh,
+                              width: 0.30.sw,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.timeWidgetColor,
+                                borderRadius: BorderRadius.circular(10.sp),
+                              ),
+                              child: Text(
+                                formattedTime,
+                                style: TextStyle(
+                                    fontFamily: 'Sejong',
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }),
                           SizedBox(width: 10.sp),
                           GestureDetector(
                             onTap: () async {
@@ -97,6 +107,8 @@ class DeployView extends StatelessWidget {
                                 await gameService.sendBoard(
                                     rCode, myId, allCoordinates);
 
+                                // 배치 타이머 초기화
+                                controller.resetDeploymentTimer();
                                 // 게임 화면으로 이동
                                 Get.offNamed('/game');
                               }
@@ -261,6 +273,7 @@ class DeployView extends StatelessWidget {
       //   onPressed: () {
       //     // 배치 초기화 버튼
       //     controller.resetPlacement();
+      //     controller.resetDeploymentTimer(); // 타이머도 리셋
       //   },
       //   tooltip: '배치 초기화',
       //   child: Icon(Icons.refresh),

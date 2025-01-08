@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return GetMaterialApp(
           title: 'Battleship',
-          // debugShowCheckedModeBanner: false,
+          debugShowCheckedModeBanner: false,
           initialRoute: '/login',
           getPages: [
             /// 로그인

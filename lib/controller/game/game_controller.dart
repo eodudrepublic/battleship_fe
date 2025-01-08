@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../common/utils/logger.dart';
+import '../../model/game_state.dart';
 import '../../model/unit.dart';
+import '../../service/game_service.dart';
 
 class GameController extends GetxController {
   // ======================================
@@ -62,6 +66,189 @@ class GameController extends GetxController {
 
   /// 현재 내가 공격하려고 선택한 좌표 (row, col)
   var selectedAttackCell = Rxn<List<int>>();
+
+  // ======================================
+  // [타이머 관련 필드]
+  // ======================================
+  /// 배치 타이머 (기존)
+  RxInt remainingDeploymentSeconds = 60.obs;
+  Timer? _deploymentTimer;
+
+  /// 턴 타이머 (공격 및 수비 턴용)
+  RxInt remainingTurnSeconds = 100.obs;
+  Timer? _turnTimer;
+
+  /// 수비자 폴링 타이머
+  Timer? _defenderCheckTimer;
+
+  /// 게임 서비스
+  final GameService _gameService = GameService();
+
+  @override
+  void onInit() {
+    super.onInit();
+    startDeploymentTimer();
+  }
+
+  // ======================================
+  // [배치 카운트다운 타이머 관련 메서드]
+  // ======================================
+  void startDeploymentTimer() {
+    _deploymentTimer?.cancel();
+    _deploymentTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (remainingDeploymentSeconds.value > 0) {
+        remainingDeploymentSeconds.value--;
+      } else {
+        timer.cancel();
+        showDeploymentTimeUpSnackbar();
+      }
+    });
+  }
+
+  /// 배치 시간이 다 되었을 때 Snackbar 표시 (기존)
+  void showDeploymentTimeUpSnackbar() {
+    Get.snackbar(
+      "알림", // 제목
+      "배치 시간이 완료되었습니다. 배치를 완료해주세요!", // 메시지
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+  /// 배치 타이머 초기화
+  void resetDeploymentTimer() {
+    _deploymentTimer?.cancel();
+    remainingDeploymentSeconds.value = 60;
+  }
+
+  // ======================================
+  // [턴 타이머 관련 메서드]
+  // ======================================
+  void startTurnTimer() {
+    // 기존 턴 타이머가 있으면 정지
+    _turnTimer?.cancel();
+    remainingTurnSeconds.value = 100; // 초기값
+
+    _turnTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (remainingTurnSeconds.value > 0) {
+        remainingTurnSeconds.value--;
+      } else {
+        timer.cancel();
+        showTurnTimeUpSnackbar();
+        handleTurnTimeout();
+      }
+    });
+  }
+
+  /// 턴 타이머 중지
+  void stopTurnTimer() {
+    _turnTimer?.cancel();
+  }
+
+  void showTurnTimeUpSnackbar() {
+    Get.snackbar(
+      "알림", // 제목
+      "턴 시간이 종료되었습니다!", // 메시지
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+  /// 턴 시간 초과 시 처리 로직
+  Future<void> handleTurnTimeout() async {
+    // 턴 종료를 서버에 알림
+    if (GameState().roomCode != null) {
+      await _gameService.endTurn(GameState().roomCode!);
+    }
+    // 턴 토글
+    toggleTurn();
+  }
+
+  // ======================================
+  // [수비 폴링 타이머] - 5초 간격으로 체크
+  // ======================================
+  void startDefenderCheckTimer() {
+    // 혹시 기존에 실행 중이면 취소
+    _defenderCheckTimer?.cancel();
+
+    _defenderCheckTimer =
+        Timer.periodic(const Duration(seconds: 5), (timer) async {
+      // 만약 이미 게임이 끝났거나, 내가 공격자면 더 이상 체크 필요 없음
+      if (GameState().isGameOver || GameState().isMyTurn == true) {
+        timer.cancel();
+        return;
+      }
+
+      if (GameState().roomCode != null) {
+        final result = await _gameService.checkDamageStatusAsDefender(
+          GameState().roomCode!,
+        );
+
+        final damageStatus = result["damage_status"];
+        final attackPos = result["attack_position"] ?? "";
+        final gameStatus = result["game_status"];
+
+        if (damageStatus == "damaged" || damageStatus == "missed") {
+          // 공격 좌표 문자열("A1" 등)을 row,col로 변환
+          final parsed = convertStringToRowCol(attackPos);
+          if (parsed != null) {
+            final row = parsed[0];
+            final col = parsed[1];
+            // 내 보드에 히트/미스 표시
+            enemyAttacksCell(row, col);
+          }
+
+          // 게임 끝났는지 여부
+          if (gameStatus == "completed") {
+            GameState().endGame();
+            Get.snackbar("패배", "상대의 마지막 공격이 적중했습니다!");
+            Log.wtf('패배 : 상대의 마지막 공격이 적중했습니다!');
+            Get.offNamed("/lose");
+          } else {
+            // 공격 끝 -> 턴 종료
+            if (GameState().roomCode != null) {
+              await _gameService.endTurn(GameState().roomCode!);
+            }
+            // 공격/수비 교대
+            toggleTurn();
+          }
+          timer.cancel(); // 이번 수비 턴은 끝났으니 타이머 종료
+        }
+      }
+    });
+  }
+
+  /// (수비 폴링 중지)
+  void stopDefenderCheckTimer() {
+    _defenderCheckTimer?.cancel();
+  }
+
+  // ======================================
+  // [턴 토글] - 공격자 ↔ 수비자 전환
+  // ======================================
+  void toggleTurn() {
+    // 1) GameState의 isMyTurn 토글
+    GameState().toggleTurn();
+
+    // 2) 기존 타이머들 정지
+    stopTurnTimer();
+    stopDefenderCheckTimer();
+
+    // 3) 게임 종료가 아니라면 새 턴 타이머 세팅
+    if (!GameState().isGameOver) {
+      if (GameState().isMyTurn == true) {
+        // 내가 공격자가 됨
+        startTurnTimer();
+      } else {
+        // 내가 수비자가 됨
+        startDefenderCheckTimer();
+      }
+    }
+  }
 
   // ======================================
   // [배치(Deploy)] 관련 메서드
@@ -353,7 +540,31 @@ class GameController extends GetxController {
   }
 
   // ======================================
-  // [배치할 유닛 유형] 리스트 (DeployView에서 사용하는 예시)
+  // [좌표 변환 유틸] - (row,col) <-> "A1"
+  // ======================================
+  List<int>? convertStringToRowCol(String pos) {
+    if (pos.length < 2) return null;
+    final rowChar = pos[0].toUpperCase();
+    final colStr = pos.substring(1);
+
+    final rowIndex = rowChar.codeUnitAt(0) - 'A'.codeUnitAt(0);
+    final colIndex = int.tryParse(colStr) ?? -1;
+    if (rowIndex < 0 || rowIndex > 9) return null;
+    if (colIndex < 1 || colIndex > 10) return null;
+
+    return [rowIndex, colIndex - 1];
+  }
+
+  @override
+  void onClose() {
+    _deploymentTimer?.cancel();
+    _turnTimer?.cancel();
+    _defenderCheckTimer?.cancel();
+    super.onClose();
+  }
+
+  // ======================================
+  // [배치할 유닛 유형] 리스트
   // ======================================
   final RxList<Unit> unitTypes = <Unit>[
     Unit(id: 'u1', name: '하마', width: 3, height: 2),
