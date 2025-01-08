@@ -4,6 +4,7 @@ import 'package:battleship_fe/view/game/test/game_service_test.dart';
 import 'package:battleship_fe/view/game/waiting_view.dart';
 import 'package:battleship_fe/view/landing/landing_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -15,6 +16,12 @@ import 'package:battleship_fe/view/game/game_view.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 화면 세로 모드로 고정
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   KakaoSdk.init(nativeAppKey: myNativeAppKey);
 
