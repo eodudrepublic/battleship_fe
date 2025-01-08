@@ -21,6 +21,7 @@ class GameState {
   int? opponentId; // 상대방 user_id
   String? roomCode; // 현재 방 코드
   bool isGameOver = false; // 게임 종료 여부
+  bool isSoloGame = false; // 솔로 게임 여부
 
   // -----------------------------
   // (2) 메서드들
@@ -30,6 +31,7 @@ class GameState {
     required bool isFirstPlayer,
     required int opponentId,
     required String roomCode,
+    bool solo = false,
   }) {
     isFirst = isFirstPlayer;
     // 선공이면 내 턴(true), 후공이면 내 턴(false)으로 시작
@@ -37,10 +39,11 @@ class GameState {
     this.opponentId = opponentId;
     this.roomCode = roomCode;
     isGameOver = false;
+    isSoloGame = solo;
 
     Log.info("[GameState] setGameState:"
         " isFirst=$isFirst, isMyTurn=$isMyTurn, "
-        " opponentId=$opponentId, roomCode=$roomCode");
+        " opponentId=$opponentId, roomCode=$roomCode, isSoloGame=$isSoloGame");
   }
 
   /// 턴 교대 : 내 턴 <-> 상대 턴
@@ -63,6 +66,7 @@ class GameState {
     opponentId = null;
     roomCode = null;
     isGameOver = false;
+    isSoloGame = false;
     Log.info("[GameState] 클리어 - 게임 상태 초기화");
   }
 }

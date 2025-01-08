@@ -140,7 +140,7 @@ class _WaitingViewState extends State<WaitingView> {
               ),
               SizedBox(
                 width: 0.55.sw,
-                height: 0.07.sh,
+                height: 0.075.sh,
                 child: ElevatedButton(
                   onPressed: () {
                     Log.info('방 코드 복사하기');
@@ -170,7 +170,7 @@ class _WaitingViewState extends State<WaitingView> {
               ),
               SizedBox(
                 width: 0.55.sw,
-                height: 0.07.sh,
+                height: 0.075.sh,
                 child: ElevatedButton(
                   onPressed: () {
                     Log.info('방 만들기 취소 -> Get.back()');

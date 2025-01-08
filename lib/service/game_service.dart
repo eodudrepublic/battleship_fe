@@ -304,4 +304,38 @@ class GameService {
       throw Exception("턴 종료 중 오류 발생: $e");
     }
   }
+
+  /// -----------------------------
+  /// 솔로 게임 생성 : createSoloGame
+  /// -----------------------------
+  /// POST /games/create-sologame?user_id={userId}
+  ///
+  /// - 응답 예시:
+  ///   {
+  ///     "is_matched": true,
+  ///     "room_code": "28285450",
+  ///     "opponent": 0,
+  ///     "is_first": false
+  ///   }
+  ///
+  /// - Returns:
+  ///   해당 JSON을 그대로 Map으로 반환
+  Future<Map<String, dynamic>> createSoloGame(int userId) async {
+    final url =
+        Uri.parse("$serverUrl:8000/games/create-sologame?user_id=$userId");
+
+    try {
+      final response = await http.post(url); // POST 요청
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        Log.info("솔로 게임 생성 응답: $jsonResponse");
+        return jsonResponse;
+      } else {
+        throw Exception("솔로 게임 생성 실패: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("솔로 게임 생성 중 오류 발생: $e");
+    }
+  }
 }
