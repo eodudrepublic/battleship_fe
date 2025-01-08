@@ -22,6 +22,7 @@ class DeployView extends StatelessWidget {
 
   DeployView({super.key});
 
+  // TODO : (DELETE) /games/delete 적용 -> 만들어진 방 삭제
   @override
   Widget build(BuildContext context) {
     final GameController controller = Get.find<GameController>();

@@ -201,6 +201,7 @@ class _WaitingViewState extends State<WaitingView> {
                 child: ElevatedButton(
                   onPressed: () {
                     Log.info('방 만들기 취소 -> Get.back()');
+                    // TODO : (DELETE) /games/delete 적용 -> 만들어진 방 삭제
                     Get.back();
                   },
                   style: ElevatedButton.styleFrom(
